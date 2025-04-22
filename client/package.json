@@ -1,0 +1,58 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@headlessui/react": "^1.7.18",
+    "@heroicons/react": "^2.1.1",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/lab": "^5.0.0-alpha.129",
+    "@mui/material": "^5.15.10",
+    "@mui/x-date-pickers": "^5.0.20",
+    "@react-three/drei": "^9.99.5",
+    "@react-three/fiber": "^8.15.16",
+    "@types/jsonwebtoken": "^9.0.5",
+    "axios": "^1.6.7",
+    "date-fns": "^2.29.3",
+    "jsonwebtoken": "^9.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.1",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.15.1",
+    "three": "^0.161.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^9.3.4",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "NODE_OPTIONS=--max-old-space-size=2048 react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

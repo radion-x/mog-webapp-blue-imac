@@ -1,0 +1,24 @@
+{
+  "name": "back-pain-assessment-app",
+  "version": "1.0.0",
+  "description": "Back Pain Assessment Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start --prefix server\" \"npm run start --prefix client\"",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run start --prefix client\"",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.7",
+    "@mui/lab": "^6.0.0-beta.30",
+    "@mui/material": "^6.4.7",
+    "@react-three/drei": "^10.0.4",
+    "@react-three/fiber": "^9.1.0",
+    "concurrently": "^8.2.2",
+    "reactjs-human-body": "^0.0.8",
+    "styled-components": "^6.1.15",
+    "three": "^0.174.0"
+  }
+}

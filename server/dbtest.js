@@ -1,0 +1,1 @@
+const mongoose = require("mongoose"); mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/mog3").then(() => console.log("Connected to MongoDB")); const Assessment = mongoose.model("Assessment", mongoose.Schema({ _id: mongoose.Schema.Types.ObjectId }));
