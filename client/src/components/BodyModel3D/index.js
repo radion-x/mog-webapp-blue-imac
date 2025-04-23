@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Grid, 
-  Paper, 
-  Slider, 
-  TextField, 
+import React, { useState, useRef, useEffect, Suspense, useImperativeHandle, forwardRef } from 'react'; // Added useImperativeHandle, forwardRef
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  Slider,
+  TextField,
   IconButton,
   Divider,
   FormControl,
@@ -18,8 +18,8 @@ import {
   useTheme,
   Collapse
 } from '@mui/material';
-import { 
-  Delete as DeleteIcon, 
+import {
+  Delete as DeleteIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   BugReport as BugReportIcon,
@@ -52,7 +52,7 @@ if (typeof window !== 'undefined') {
   fiber = require('@react-three/fiber');
   drei = require('@react-three/drei');
   visualizers = require('./visualizers');
-  
+
   // Preload the model
   if (drei.useGLTF && drei.useGLTF.preload) {
     drei.useGLTF.preload('/human_body_base_cartoon_gltf/scene.gltf');
@@ -104,7 +104,7 @@ if (isBrowser && fiber && drei && visualizers) {
   OrbitControls = drei.OrbitControls;
   Html = drei.Html;
   PerspectiveCamera = drei.PerspectiveCamera;
-  
+
   // Load visualizers
   PainPointsVisualizer = visualizers.PainPointsVisualizer;
   PulseAnimation = visualizers.PulseAnimation;
@@ -115,13 +115,13 @@ if (isBrowser && fiber && drei && visualizers) {
 // Model loader placeholder
 const ModelLoader = () => {
   if (!isBrowser) return null;
-  
+
   return (
     <Html center>
-      <Box 
-        sx={{ 
-          background: 'rgba(255,255,255,0.9)', 
-          padding: '30px', 
+      <Box
+        sx={{
+          background: 'rgba(255,255,255,0.9)',
+          padding: '30px',
           borderRadius: '12px',
           display: 'flex',
           flexDirection: 'column',
@@ -138,10 +138,10 @@ const ModelLoader = () => {
         <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary', textAlign: 'center' }}>
           Please wait while we prepare the interactive body model
         </Typography>
-        <Box 
-          sx={{ 
-            width: 60, 
-            height: 60, 
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
             borderRadius: '50%',
             border: '4px solid #e0e0e0',
             borderTopColor: '#1976d2',
@@ -150,7 +150,7 @@ const ModelLoader = () => {
               '0%': { transform: 'rotate(0deg)' },
               '100%': { transform: 'rotate(360deg)' }
             }
-          }} 
+          }}
         />
       </Box>
     </Html>
@@ -160,18 +160,18 @@ const ModelLoader = () => {
 // Debug boundaries - visualizes front/back plane
 const RegionBoundaryVisualizer = ({ debugMode, debugLevel }) => {
   if (!isBrowser || !debugMode || debugLevel < 2) return null;
-  
+
   return (
     <>
       {/* Front plane at z=0.00 */}
       <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
         <planeGeometry args={[0.6, 1.2]} />
-        <meshBasicMaterial 
-          color="rgba(255,0,0,0.5)" 
-          transparent={true} 
-          opacity={0.1} 
+        <meshBasicMaterial
+          color="rgba(255,0,0,0.5)"
+          transparent={true}
+          opacity={0.1}
           side={THREE.DoubleSide}
-          depthWrite={false} 
+          depthWrite={false}
         />
       </mesh>
       <Html
@@ -188,16 +188,16 @@ const RegionBoundaryVisualizer = ({ debugMode, debugLevel }) => {
       >
         <div>Front/Back Boundary (z=0.00)</div>
       </Html>
-      
+
       {/* Back plane at z=-0.01 */}
       <mesh position={[0, 0, -0.01]} rotation={[0, 0, 0]}>
         <planeGeometry args={[0.6, 1.2]} />
-        <meshBasicMaterial 
-          color="rgba(0,0,255,0.5)" 
-          transparent={true} 
-          opacity={0.1} 
+        <meshBasicMaterial
+          color="rgba(0,0,255,0.5)"
+          transparent={true}
+          opacity={0.1}
           side={THREE.DoubleSide}
-          depthWrite={false} 
+          depthWrite={false}
         />
       </mesh>
       <Html
@@ -222,15 +222,15 @@ const RegionBoundaryVisualizer = ({ debugMode, debugLevel }) => {
 const HumanModel = ({ onModelClick, disabled }) => {
   // Always declare hooks regardless of browser environment - don't use ternary for the hook itself
   const modelRef = useRef();
-  
+
   // Call useGLTF unconditionally
   const gltfResult = useGLTF('/human_body_base_cartoon_gltf/scene.gltf');
-  
+
   // Use effect for model setup
   useEffect(() => {
     // Skip processing on server
     if (!isBrowser) return;
-    
+
     const scene = gltfResult?.scene;
     if (modelRef.current && scene) {
       // Make adjustments to the model
@@ -241,15 +241,15 @@ const HumanModel = ({ onModelClick, disabled }) => {
           node.material.opacity = 0.92;
           node.material.needsUpdate = true;
           node.material.depthWrite = true;
-          
+
           // Add slight outline effect to body
-          node.material.envMapIntensity = 0.5; 
+          node.material.envMapIntensity = 0.5;
           node.material.roughness = 0.65;
-          
+
           // Enable shadows
           node.castShadow = true;
           node.receiveShadow = true;
-          
+
           // Set renderOrder to ensure pain points render above the model
           node.renderOrder = 1;
 
@@ -257,22 +257,22 @@ const HumanModel = ({ onModelClick, disabled }) => {
           node.userData.isBodyPart = true;
         }
       });
-      
+
       // Center the model better
       scene.position.set(0, 0, 0);
       scene.updateMatrixWorld();
     }
   }, [isBrowser, gltfResult]);
-  
+
   if (!isBrowser) return null;
-  
+
   return (
-    <primitive 
+    <primitive
       ref={modelRef}
-      object={gltfResult.scene} 
+      object={gltfResult.scene}
       scale={[0.55, 0.55, 0.55]}
-      position={[0, 0.4, 0]} 
-      rotation={[0, 0, 0]} 
+      position={[0, 0.4, 0]}
+      rotation={[0, 0, 0]}
       onClick={(e) => {
         if (disabled) return;
         e.stopPropagation();
@@ -284,10 +284,10 @@ const HumanModel = ({ onModelClick, disabled }) => {
           const vector = hitPoint.clone().project(e.camera);
           const x = (vector.x + 1) / 2 * window.innerWidth;
           const y = -(vector.y - 1) / 2 * window.innerHeight;
-          
+
           // Generate a unique ID for this custom point
           const customPointId = `custom_${Date.now()}`;
-          
+
           // Call the click handler with the new point information
           onModelClick(customPointId, "Custom Pain Point", { x, y }, hitPoint);
         }
@@ -296,18 +296,18 @@ const HumanModel = ({ onModelClick, disabled }) => {
   );
 };
 
-// Update the Scene component to include visualization components
-const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, debugLevel, onHoverChange, onModelClick, customPainPoints, showPredefinedPoints }) => {
+// Update the Scene component to include visualization components and accept a ref
+const Scene = forwardRef(({ onPointClick, painScores, disabled, activeRegion, debugMode, debugLevel, onHoverChange, onModelClick, customPainPoints, showPredefinedPoints }, ref) => {
   // Always declare hooks, even if not used in server context
-  const threeContext = useThree();
+  const { camera } = useThree(); // Destructure camera
   const controlsRef = useRef();
   const [hoveredPointId, setHoveredPointId] = useState(null);
   const [hoverInfo, setHoverInfo] = useState(null);
   const [visiblePointsCount, setVisiblePointsCount] = useState(0);
-  
+
   // Make visible points based on region filtering
   const visiblePainPoints = {};
-  
+
   // Add predefined pain points that should be visible based on activeRegion
   if (showPredefinedPoints) {
     Object.entries(predefinedPainPoints).forEach(([id, point]) => {
@@ -315,7 +315,7 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       if (activeRegion === 'all' || point.region === activeRegion) {
         // Get any custom pain score for this predefined point
         const painScore = painScores[id] || 0;
-        
+
         // Only show if there's pain
         if (painScore > 0) {
           visiblePainPoints[id] = {
@@ -327,7 +327,7 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       }
     });
   }
-  
+
   // Add custom pain points that should be visible based on activeRegion
   if (customPainPoints && customPainPoints.length > 0) {
     customPainPoints.forEach(point => {
@@ -344,24 +344,24 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       }
     });
   }
-  
+
   // Calculate visible points count
   const currentVisiblePointsCount = Object.keys(visiblePainPoints).length;
-  
+
   // Update the count when it changes
   useEffect(() => {
     setVisiblePointsCount(currentVisiblePointsCount);
-    
+
     // Notify parent component if needed
     if (onHoverChange && typeof onHoverChange === 'function') {
       onHoverChange(null, currentVisiblePointsCount);
     }
   }, [currentVisiblePointsCount, onHoverChange]);
-  
+
   // Log summary of visible points (outside of useEffect)
-  debugLog('Scene', `Total visible pain points: ${currentVisiblePointsCount}`, 
+  debugLog('Scene', `Total visible pain points: ${currentVisiblePointsCount}`,
     Object.keys(visiblePainPoints));
-  
+
   // Point hover effects
   const handlePointHover = (id) => {
     if (id) {
@@ -374,28 +374,46 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       setHoveredPointId(id);
     } else {
       setHoverInfo(null);
+    } // Added missing closing brace
+  };
+
+  // Function to smoothly transition camera view
+  const setCameraView = (position, target = [0, 0.3, 0]) => {
+    if (controlsRef.current && camera) {
+      // Simple jump for now, can be enhanced with smooth transitions later
+      camera.position.set(...position);
+      controlsRef.current.target.set(...target);
+      controlsRef.current.update();
     }
   };
-  
+
+  // Expose functions to parent using useImperativeHandle
+  useImperativeHandle(ref, () => ({
+    setViewFront: () => setCameraView([0, 0.25, 2.0]),
+    setViewBack: () => setCameraView([0, 0.25, -2.0]),
+    setViewLeft: () => setCameraView([-2.0, 0.25, 0]),
+    setViewRight: () => setCameraView([2.0, 0.25, 0]),
+  }));
+
   // Skip rendering on server
   if (!isBrowser) return null;
-  
-  const { camera, scene } = threeContext;
-  
+
+  // const { scene } = threeContext; // scene is not explicitly used here
+
   return (
     <>
       {/* Camera and lights */}
-      <PerspectiveCamera 
-        makeDefault 
-        fov={30} 
-        position={[0, 0.25, 2.0]} 
+      <PerspectiveCamera
+        makeDefault
+        fov={30}
+        position={[0, 0.25, 2.0]}
         near={0.1}
         far={1000}
       />
       <ambientLight intensity={0.7} />
-      <directionalLight 
-        intensity={1.0} 
-        position={[5, 5, 5]} 
+      <directionalLight
+        intensity={1.0}
+        position={[5, 5, 5]}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -408,7 +426,7 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       <directionalLight intensity={0.5} position={[-5, 5, -5]} />
       <directionalLight intensity={0.4} position={[0, -5, 0]} />
       <hemisphereLight intensity={0.4} color="#ffffff" groundColor="#bbbbff" />
-      
+
       {/* Scene background */}
       {isBrowser && (
         <>
@@ -416,27 +434,27 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
           <fog attach="fog" args={['#f8f9fa', 10, 20]} />
         </>
       )}
-      
+
       {/* Model */}
       <Suspense fallback={<ModelLoader />}>
         <HumanModel onModelClick={onModelClick} disabled={disabled} />
       </Suspense>
-      
+
       {/* Region visualization - only in debug mode */}
       {debugMode && debugLevel >= 2 && (
         <RegionBoundaryVisualizer />
       )}
-      
+
       {/* Render zone visualizers for all regions in advanced debug */}
-      <RegionZoneVisualizer 
-        bounds={regionBounds} 
-        visible={debugMode && debugLevel >= 3} 
+      <RegionZoneVisualizer
+        bounds={regionBounds}
+        visible={debugMode && debugLevel >= 3}
         opacity={0.15}
       />
-      
+
       {/* Hover info tooltip - Only show in debug mode */}
       {hoverInfo && debugMode && debugLevel >= 1 && (
-        <Html 
+        <Html
           position={[hoverInfo.position.x, hoverInfo.position.y, 0]}
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -454,10 +472,10 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
           <div>{hoverInfo.label}</div>
         </Html>
       )}
-      
+
       {/* Visualize pain points */}
-      <PainPointsVisualizer 
-        points={visiblePainPoints} 
+      <PainPointsVisualizer
+        points={visiblePainPoints}
         onPainPointSelect={(id) => {
           console.log("%c PAIN POINT SELECTED IN SCENE", "background: lightblue; color: black; font-size: 16px", {
             id,
@@ -477,16 +495,16 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
         hoveredPointId={hoveredPointId}
         disabled={disabled}
       />
-      
+
       {/* Pulse animation for highlighted points */}
       {hoveredPointId && visiblePainPoints[hoveredPointId] && (
-        <PulseAnimation 
+        <PulseAnimation
           position={visiblePainPoints[hoveredPointId].position}
           color={getPainColor(visiblePainPoints[hoveredPointId].painLevel)}
         />
       )}
-      
-      <OrbitControls 
+
+      <OrbitControls
         ref={controlsRef}
         enablePan={false}
         minDistance={1.0}
@@ -495,7 +513,7 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
         maxPolarAngle={Math.PI * 5 / 6}
         enableDamping
         dampingFactor={0.1}
-        target={[0, 0.3, 0]} 
+        target={[0, 0.3, 0]}
         rotateSpeed={0.65}
         autoRotate={false}
         autoRotateSpeed={0}
@@ -503,13 +521,14 @@ const Scene = ({ onPointClick, painScores, disabled, activeRegion, debugMode, de
       />
     </>
   );
-};
+}); // Close forwardRef for Scene
 
-// Main BodyModel3D component
-const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode }) => {
+// Main BodyModel3D component - Needs to be wrapped with forwardRef to receive ref from parent
+const BodyModel3D = forwardRef(({ onChange, disabled = false, debugMode: externalDebugMode }, ref) => { // Wrap with forwardRef and accept ref
   const theme = useTheme();
   const containerRef = useRef(null);
-  
+  const sceneRef = useRef(); // Ref for the Scene component
+
   // State management for the 3D viewer
   const [modelError, setModelError] = useState(false);
   const [selectedPointId, setSelectedPointId] = useState(null);
@@ -533,7 +552,7 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
           }
           return acc;
         }, {});
-      
+
       console.log('Notifying parent of pain scores:', validPainScores);
       onChange(validPainScores);
     }
@@ -542,12 +561,12 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   // Point selection handlers
   const handlePointClick = (id) => {
     console.log("Point clicked:", id, ", previous selected point:", selectedPointId);
-    
+
     // If selecting a different point, expand the details view
     if (id !== selectedPointId) {
       setShowExpandedPainInput(true);
     }
-    
+
     setSelectedPointId(id);
   };
 
@@ -555,12 +574,12 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   function getSelectedPointDetails(pointId) {
     // Log for debugging
     console.log("Getting details for point ID:", pointId);
-    
+
     if (!pointId) {
       console.log("No point selected");
       return null;
     }
-    
+
     // Check if it's a predefined point
     const predefinedPoint = predefinedPainPoints[pointId];
     if (predefinedPoint) {
@@ -571,7 +590,7 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
         painLevel: painScores[pointId] || 0
       };
     }
-    
+
     // Check if it's a custom point
     const customPoint = customPainPoints.find(p => p.id === pointId);
     if (customPoint) {
@@ -581,7 +600,7 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
         isPredefined: false
       };
     }
-    
+
     console.log("Point ID not found in predefined or custom points:", pointId);
     return null;
   }
@@ -607,19 +626,19 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   // Update pain level for a point
   const handlePainLevelChange = (pointId, level) => {
     if (disabled) return;
-    
+
     // Update the pain score
     setPainScores(prev => ({
       ...prev,
       [pointId]: level
     }));
-    
+
     // For custom points, also update the painLevel in the custom point object
     if (!predefinedPainPoints[pointId]) {
-      setCustomPainPoints(prev => 
-        prev.map(point => 
-          point.id === pointId 
-            ? { ...point, painLevel: level } 
+      setCustomPainPoints(prev =>
+        prev.map(point =>
+          point.id === pointId
+            ? { ...point, painLevel: level }
             : point
         )
       );
@@ -629,12 +648,12 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   // Update notes for a pain point
   const handleNotesChange = (pointId, notes) => {
     if (disabled) return;
-    
+
     // Only custom points have notes
-    setCustomPainPoints(prev => 
-      prev.map(point => 
-        point.id === pointId 
-          ? { ...point, notes } 
+    setCustomPainPoints(prev =>
+      prev.map(point =>
+        point.id === pointId
+          ? { ...point, notes }
           : point
       )
     );
@@ -643,13 +662,13 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   // Handle clicking on the model to add a custom pain point
   const handleModelClick = (id, label, screenPos, worldPos) => {
     if (disabled) return;
-    
+
     console.log("Model clicked:", { id, label, screenPos, worldPos });
-    
+
     // Determine which body region was clicked
     const regionInfo = determineBodyRegion([worldPos.x, worldPos.y, worldPos.z]);
     console.log("Detected body region:", regionInfo);
-    
+
     if (regionInfo) {
       // Create a new custom pain point
       const newPoint = {
@@ -661,23 +680,23 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
         notes: "",
         medicalTerm: regionInfo.medicalTerm
       };
-      
+
       console.log("Creating new pain point:", newPoint);
-      
+
       // Add the new point to our custom points
       setCustomPainPoints(prev => [...prev, newPoint]);
       console.log("Custom pain points updated:", [...customPainPoints, newPoint]);
-      
+
       // Set initial pain score to 5 (medium)
       setPainScores(prev => ({
         ...prev,
         [id]: 5
       }));
       console.log("Pain scores updated with new point:", { ...painScores, [id]: 5 });
-      
+
       // Select the new point
       setSelectedPointId(id);
-      
+
       // Ensure expanded view is shown for new points
       setShowExpandedPainInput(true);
     }
@@ -691,27 +710,35 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
   // Delete a custom pain point
   const handleDeleteCustomPoint = (pointId) => {
     if (disabled) return;
-    
+
     // Remove the point from custom points
     setCustomPainPoints(prev => prev.filter(p => p.id !== pointId));
-    
+
     // Remove the pain score
     setPainScores(prev => {
       const newScores = { ...prev };
       delete newScores[pointId];
       return newScores;
     });
-    
+
     // Clear selection if the deleted point was selected
     if (selectedPointId === pointId) {
       setSelectedPointId(null);
     }
   };
 
+  // Expose sceneRef methods via the main component's ref - Moved before return
+  useImperativeHandle(ref, () => ({
+    setViewFront: () => sceneRef.current?.setViewFront(),
+    setViewBack: () => sceneRef.current?.setViewBack(),
+    setViewLeft: () => sceneRef.current?.setViewLeft(),
+    setViewRight: () => sceneRef.current?.setViewRight(),
+  }));
+
   return (
-    <Box 
+    <Box
       ref={containerRef}
-      sx={{ 
+      sx={{
         position: 'relative',
         width: '100%',
         height: '100%',
@@ -722,8 +749,8 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
       }}
     >
       <Canvas
-        camera={{ 
-          position: [0, 0.25, 1.2], 
+        camera={{
+          position: [0, 0.25, 1.2],
           fov: 45,
           near: 0.1,
           far: 1000
@@ -732,7 +759,8 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
           background: theme.palette.background.default
         }}
       >
-        <Scene 
+        <Scene
+          ref={sceneRef} // Pass the ref to the Scene component
           onPointClick={handlePointClick}
           painScores={painScores}
           disabled={disabled}
@@ -794,21 +822,21 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
               { value: 10, label: '10' }
             ]}
             sx={{
-              color: selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild : 
-                     selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate : 
+              color: selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild :
+                     selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate :
                      PAIN_COLORS.severe,
               height: 4,
               '& .MuiSlider-thumb': {
                 height: 18,
                 width: 18,
                 backgroundColor: '#fff',
-                border: `2px solid ${selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild : 
-                        selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate : 
+                border: `2px solid ${selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild :
+                        selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate :
                         PAIN_COLORS.severe}`,
               },
               '& .MuiSlider-valueLabel': {
-                backgroundColor: selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild : 
-                                selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate : 
+                backgroundColor: selectedPoint.painLevel <= 3 ? PAIN_COLORS.mild :
+                                selectedPoint.painLevel <= 7 ? PAIN_COLORS.moderate :
                                 PAIN_COLORS.severe,
               },
             }}
@@ -878,6 +906,6 @@ const BodyModel3D = ({ onChange, disabled = false, debugMode: externalDebugMode 
       )}
     </Box>
   );
-};
+}); // Close forwardRef for BodyModel3D
 
-export default BodyModel3D; 
+export default BodyModel3D;

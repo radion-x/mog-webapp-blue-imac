@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Added useRef
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/axios';
 import BodyModel3D from '../components/BodyModel3D';
@@ -34,12 +34,17 @@ import {
 } from '@mui/material';
 import {
   ArrowBack,
-  ArrowForward, 
+  ArrowForward,
   Help,
   CheckCircleOutline,
   RestartAlt,
   Warning,
-  BugReport as BugReportIcon
+  BugReport as BugReportIcon,
+  TouchApp as TouchAppIcon, // Added icon for instruction text
+  ArrowUpward, // Icon for Back view
+  ArrowDownward, // Icon for Front view
+  ArrowBackIosNew, // Icon for Left view
+  ArrowForwardIos // Icon for Right view
 } from '@mui/icons-material';
 
 // Import THREE patching early to ensure it's available
@@ -77,9 +82,10 @@ const PainAssessment = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [modelType, setModelType] = useState('3d'); // '3d', '2d', or 'simple'
   const [debugMode, setDebugMode] = useState(false);
-const [threeJsError, setThreeJsError] = useState(null);
-const [painDescription, setPainDescription] = useState('');
-const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [threeJsError, setThreeJsError] = useState(null);
+  const [painDescription, setPainDescription] = useState('');
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const modelRef = useRef(); // Ref for BodyModel3D component
 
   // Error handler for THREE.js errors
   const handleThreeJsError = (error) => {
@@ -113,13 +119,13 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
     const idFromQuery = queryParams.get('id');
     const idFromState = location.state?.assessmentId;
     const idFromStorage = localStorage.getItem('assessmentId');
-    
+
     console.log('Pain Assessment - ID sources:', {
       query: idFromQuery,
       state: idFromState,
       storage: idFromStorage
     });
-    
+
     // If no assessment ID is available, we need to create one
     if (!idFromQuery && !idFromState && !idFromStorage) {
       console.log('No assessment ID found. Creating a temporary one...');
@@ -131,15 +137,15 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             name: 'Temporary User',
             email: 'temp@example.com'
           });
-          
+
           console.log('Temporary assessment created:', response.data);
-          
+
           if (response.data && response.data._id) {
             const newAssessmentId = response.data._id;
             localStorage.setItem('assessmentId', newAssessmentId);
             localStorage.setItem('userName', 'Temporary User');
             localStorage.setItem('userEmail', 'temp@example.com');
-            
+
             // Also add to known assessment IDs registry for user dashboard display
             try {
               const knownAssessmentIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
@@ -151,11 +157,11 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             } catch (e) {
               console.error('Error updating known assessment IDs:', e);
             }
-            
+
             // This will force a re-render without reloading the page
             window.history.replaceState(
-              {}, 
-              document.title, 
+              {},
+              document.title,
               `/assessment?id=${response.data._id}`
             );
           }
@@ -166,14 +172,14 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
           setIsLoading(false);
         }
       };
-      
+
       createTemporaryAssessment();
     } else {
       // Use existing assessment ID
       const assessmentId = idFromQuery || idFromState || idFromStorage;
       console.log('Using assessment ID:', assessmentId);
       localStorage.setItem('assessmentId', assessmentId);
-      
+
       // Also add to known assessment IDs registry for user dashboard display
       try {
         const knownAssessmentIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
@@ -185,7 +191,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
       } catch (e) {
         console.error('Error updating known assessment IDs:', e);
       }
-      
+
       // Fetch assessment data to get user info
       const fetchAssessmentData = async () => {
         try {
@@ -199,33 +205,33 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
           console.error('Error fetching assessment data:', error);
         }
       };
-      
+
       fetchAssessmentData();
     }
-    
+
     // Add global error handler for THREE.js errors
     const handleError = (event) => {
       const errorMsg = event.error?.message || event.message || '';
-      
+
       // Check for specific BugReportIcon error
       if (errorMsg.includes('BugReportIcon is not defined')) {
         console.error('BugReportIcon error detected - this is a component import issue');
         // We can handle this silently - the icon will be missing but functionality can continue
         return;
       }
-      
+
       // Check for THREE.js related errors
-      if (errorMsg.includes('primaries') || 
-          errorMsg.includes('three') || 
-          errorMsg.includes('THREE') || 
+      if (errorMsg.includes('primaries') ||
+          errorMsg.includes('three') ||
+          errorMsg.includes('THREE') ||
           errorMsg.includes('WebGL')) {
         handleThreeJsError(event.error || new Error(errorMsg));
       }
     };
-    
+
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleError);
-    
+
     return () => {
     window.removeEventListener('error', handleError);
     window.removeEventListener('unhandledrejection', handleError);
@@ -250,7 +256,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
   const handleSubmit = async () => {
     // Check if we have any pain data and at least one point with pain level > 0
     const hasValidPainPoints = painData && Object.values(painData).some(painLevel => painLevel > 0);
-    
+
     if (!hasValidPainPoints) {
       setError('Please mark at least one pain point with a pain level before proceeding');
       return;
@@ -259,7 +265,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
     try {
       setIsLoading(true);
       setError('');
-      
+
       // const userInfo = { // Removed unused variable
       //   name: localStorage.getItem('userName'),
       //   email: localStorage.getItem('userEmail')
@@ -271,9 +277,9 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
         setIsLoading(false);
         return;
       }
-      
+
       console.log('Submitting assessment with ID:', assessmentId);
-      
+
       // Prepare assessment data
       const assessmentData = {
         userId: assessmentId,
@@ -290,15 +296,15 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
         if (!assessmentData.timestamp) {
           assessmentData.timestamp = new Date().toISOString();
         }
-        
+
         console.log('Saving pain assessment with data:', JSON.stringify(assessmentData));
-        
+
         // Now that we definitely have a timestamp, create or update a user link for this assessment
         try {
           const token = localStorage.getItem('token');
           if (token) {
             // If user is authenticated, link this assessment to their account
-            await api.put(`/assessment/${assessmentId}/link-user`, { 
+            await api.put(`/assessment/${assessmentId}/link-user`, {
               userId: api.defaults.headers.common['x-auth-token'] ? 'user-from-token' : localStorage.getItem('userId')
             });
             console.log('Linked assessment to authenticated user account');
@@ -307,18 +313,18 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
           console.error('Error linking assessment to user account:', linkError);
           // Continue anyway - this isn't critical
         }
-        
+
         const response = await api.post('/assessment/pain-assessment', assessmentData);
         console.log('Assessment saved successfully:', response.data);
-        
+
         // Ensure assessment ID is stored in localStorage before navigation
         localStorage.setItem('assessmentId', assessmentId);
-        
+
         // Store the assessment data in localStorage for user dashboard access
         try {
           // Get the realAssessments array from localStorage or create empty array
           const realAssessments = JSON.parse(localStorage.getItem('realAssessments') || '[]');
-          
+
           // Add the current assessment data - use the server response data which is more complete
           const assessmentToSave = {
             ...response.data, // Take all fields from server response
@@ -332,17 +338,17 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             isRealData: true, // Flag to identify real user assessment data
             isTempData: false // Explicitly mark as not temporary
           };
-          
+
           // Remove any old versions of this assessment
           const filteredAssessments = realAssessments.filter(a => a._id !== assessmentId);
-          
+
           // Add the new assessment
           filteredAssessments.push(assessmentToSave);
-          
+
           // Save back to localStorage
           localStorage.setItem('realAssessments', JSON.stringify(filteredAssessments));
           console.log('Saved assessment to localStorage for dashboard access:', assessmentId);
-          
+
           // Also update knownAssessmentIds to include this ID
           try {
             const knownIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
@@ -357,11 +363,11 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
         } catch (e) {
           console.error('Error saving assessment to localStorage:', e);
         }
-        
+
         // Immediate navigate to dashboard, regardless of success
         setIsLoading(false);
         console.log('Navigating to dashboard...');
-        
+
         // Before redirecting, ensure refreshed assessments will be shown
         try {
           // Make a direct server request to link this assessment with the user
@@ -374,25 +380,25 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
         } catch (linkErr) {
           console.error('Error linking assessment before redirect:', linkErr);
         }
-        
+
         // Force a full page redirect instead of client-side navigation
         window.location.href = `/dashboard?id=${assessmentId}`;
       } catch (apiError) {
         console.error('API Error:', apiError);
-        const errorMessage = apiError.response?.data?.message || 
-                           apiError.response?.data?.error || 
+        const errorMessage = apiError.response?.data?.message ||
+                           apiError.response?.data?.error ||
                            'Failed to save pain assessment. Please try again.';
         setError(`API Error: ${errorMessage}`);
         setIsLoading(false);
-        
+
         // Ensure assessment ID is stored in localStorage before navigation
         localStorage.setItem('assessmentId', assessmentId);
-        
+
         // Even with error, save the assessment data in localStorage for user dashboard access
         try {
           // Get the realAssessments array from localStorage or create empty array
           const realAssessments = JSON.parse(localStorage.getItem('realAssessments') || '[]');
-          
+
           // Add the current assessment data
           const assessmentToSave = {
             _id: assessmentId,
@@ -405,11 +411,11 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             isRealData: true, // Flag to identify real user assessment data
             hasError: true // Flag to indicate there was an error saving
           };
-          
+
           // Only add if not already present
           if (!realAssessments.some(a => a._id === assessmentId)) {
             realAssessments.push(assessmentToSave);
-            
+
             // Save back to localStorage
             localStorage.setItem('realAssessments', JSON.stringify(realAssessments));
             console.log('Saved error assessment to localStorage for dashboard access:', assessmentId);
@@ -417,7 +423,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
         } catch (e) {
           console.error('Error saving assessment to localStorage:', e);
         }
-        
+
         // Before redirecting, try one more time to ensure this assessment is linked with user
         try {
           // Make a direct server request to link this assessment with the user
@@ -443,7 +449,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
   };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       minHeight: '100vh',
       bgcolor: 'grey.50',
       py: 2,
@@ -465,17 +471,17 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             </Stepper>
           </Box>
 
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             mb: 2
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography 
+              <Typography
                 variant="h4"
                 align="center"
-                sx={{ 
+                sx={{
                   fontWeight: 700,
                   background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
                   WebkitBackgroundClip: 'text',
@@ -490,18 +496,18 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
                 </IconButton>
               </Tooltip>
             </Box>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Tooltip title="Toggle debug mode">
-                <IconButton 
-                  onClick={toggleDebugMode} 
+                <IconButton
+                  onClick={toggleDebugMode}
                   color={debugMode ? "error" : "default"}
                   sx={{ mr: 1 }}
                 >
                   <BugReportIcon />
                 </IconButton>
               </Tooltip>
-              
+
               <Tooltip title="Select visualization type">
                 <Box>
                   <RadioGroup
@@ -521,9 +527,9 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
 
           {error && (
             <Fade in={true}>
-              <Alert 
-                severity="error" 
-                sx={{ 
+              <Alert
+                severity="error"
+                sx={{
                   mb: 2,
                   borderRadius: 1,
                   '& .MuiAlert-message': { py: 0 }
@@ -536,10 +542,10 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
 
           {showSuccess && !error && (
             <Fade in={true}>
-              <Alert 
+              <Alert
                 icon={<CheckCircleOutline fontSize="small" />}
-                severity="success" 
-                sx={{ 
+                severity="success"
+                sx={{
                   mb: 2,
                   borderRadius: 1,
                   '& .MuiAlert-message': { py: 0 }
@@ -550,53 +556,92 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             </Fade>
           )}
 
-          <Box sx={{ 
-            width: '100%',
-            maxWidth: '1200px',
-            mx: 'auto',
-            height: {xs: '75vh', sm: '85vh', md: '90vh'}, // Further increased height for larger model view
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            borderRadius: 2,
-            overflow: 'hidden'
-          }}>
-            <Paper 
-              elevation={3}
-              sx={{ 
-                p: 0,
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                height: '100%',
-                width: '100%',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-              }}
-            >
-              {modelType === '3d' ? (
-                <ErrorBoundary 
-                  onError={handleThreeJsError}
-                  key={modelType} // Force remount when model type changes
-                >
-                  <BodyModel3D
+          {/* Container for Model and Description */}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+
+            {/* Model Area */}
+            <Box sx={{
+              width: '100%',
+              maxWidth: '1200px', // Keep max width if desired
+              mx: 'auto',
+              height: { xs: '80vh', sm: '90vh', md: '95vh' }, // Height set here
+              position: 'relative', // Keep relative for inner absolute positioning
+              display: 'flex', // Use flex to make Paper grow
+              flexDirection: 'column',
+              borderRadius: 2,
+              overflow: 'hidden', // Keep overflow hidden
+              mb: 3 // Add margin below model area
+            }}>
+              {/* Instructional Text */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, color: 'text.secondary' }}>
+                <TouchAppIcon sx={{ mr: 0.5, fontSize: '1.1rem' }} />
+                <Typography variant="caption">
+                  Click, hold, and drag to rotate the model. Use scroll to zoom.
+                </Typography>
+              </Box>
+
+              <Paper
+                elevation={3}
+                sx={{
+                  flexGrow: 1, // Make Paper fill the parent Box height
+                  position: 'relative', // Position context for buttons
+                  p: 0,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  width: '100%',
+                  overflow: 'hidden', // Keep overflow hidden
+                  display: 'flex', // Keep display flex
+                  flexDirection: 'column',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                }}
+              >
+                {/* Camera Control Buttons - Inside Paper */}
+                <Box sx={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Tooltip title="View Front">
+                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewFront()}>
+                      <ArrowDownward fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="View Back">
+                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewBack()}>
+                      <ArrowUpward fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="View Left">
+                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewLeft()}>
+                      <ArrowBackIosNew fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="View Right">
+                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewRight()}>
+                      <ArrowForwardIos fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                {modelType === '3d' ? (
+                  <ErrorBoundary
+                    onError={handleThreeJsError}
+                    key={modelType} // Force remount when model type changes
+                  >
+                    <BodyModel3D
+                      ref={modelRef} // Assign the ref
+                      onChange={handlePainDataChange}
+                      disabled={isLoading}
+                      debugMode={debugMode}
+                    />
+                  </ErrorBoundary>
+                ) : (
+                  <SimpleBodyModel
                     onChange={handlePainDataChange}
                     disabled={isLoading}
-                    debugMode={debugMode}
                   />
-                </ErrorBoundary>
-              ) : (
-                <SimpleBodyModel 
-                  onChange={handlePainDataChange}
-                  disabled={isLoading}
-                />
-              )}
-            </Paper>
+                )}
+              </Paper>
+            </Box>
 
             {/* Pain Description Input - Using TextField */}
-            <Box sx={{ mt: 3, mb: 3 }}> {/* Added margin top and bottom */}
+            <Box sx={{ mb: 3 }}> {/* Use margin bottom only */}
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                 Describe Your Pain Experience
               </Typography>
@@ -620,13 +665,14 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
               />
             </Box>
 
+            {/* Action Buttons */}
             <Box sx={{
               display: 'flex',
               justifyContent: 'space-between',
-              mt: 2,
+              mt: 'auto', // Push buttons to the bottom if needed, though description is below now
               pt: 2,
-              borderTop: 1, 
-              borderColor: 'divider' 
+              borderTop: 1,
+              borderColor: 'divider'
             }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button
@@ -644,7 +690,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
                 >
                   Back to Home
                 </Button>
-                
+
                 <Button
                   variant="outlined"
                   color="primary"
@@ -685,17 +731,17 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
                 Complete Assessment
               </Button>
             </Box>
-          </Box>
+          </Box> {/* Close Container for Model and Description */}
         </StyledPaper>
       </Container>
-      
+
       {/* THREE.js Error Dialog */}
       <Dialog
         open={showErrorDialog}
         onClose={() => setShowErrorDialog(false)}
         aria-labelledby="threejs-error-dialog-title"
       >
-        <DialogTitle id="threejs-error-dialog-title" sx={{ 
+        <DialogTitle id="threejs-error-dialog-title" sx={{
           display: 'flex',
           alignItems: 'center',
           gap: 1
