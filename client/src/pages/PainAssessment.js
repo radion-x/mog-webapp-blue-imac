@@ -552,7 +552,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             width: '100%',
             maxWidth: '1200px',
             mx: 'auto',
-            height: {xs: '50vh', sm: '60vh', md: '65vh'}, // Reduced height to ensure button stays in view
+            height: {xs: '70vh', sm: '80vh', md: '85vh'}, // Increased height for larger model view
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
