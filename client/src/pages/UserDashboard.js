@@ -110,44 +110,39 @@ const UserDashboard = () => {
   const [assessments, setAssessments] = useState([]);
 
   // Fetch user data on mount
-  // The test assessment function has been removed
-
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
       setError(null);
 
-      // Check if user is logged in
-      if (!user) {
-        console.log('No user authenticated, showing login options');
-        setError('Please log in to access your dashboard');
-        setLoading(false);
-        return;
-      }
+      // Check if user is logged in - This check is now done after hooks
+      // if (!user) { ... } // Moved below
 
       // ALWAYS load ALL assessments immediately on mount to ensure consistent data
       const loadAllAssessments = async () => {
-        console.log('IMMEDIATE LOAD: Getting all assessments');
+        console.log('IMMEDIATE LOAD: Getting assessments for the logged-in user');
         try {
-          const response = await api.get('/assessment');
-          console.log('IMMEDIATE LOAD: Got', response.data?.length || 0, 'assessments');
+          // Corrected endpoint: Fetch assessments for the specific user
+          const response = await api.get('/assessment/user');
+          console.log('IMMEDIATE LOAD: Got', response.data?.length || 0, 'assessments for user');
 
-          if (Array.isArray(response.data) && response.data.length > 0) {
-            // Sort by date (newest first)
-            const sortedAssessments = response.data.sort((a, b) =>
-              new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
-            );
-
-            // Update state with all assessments
-            setAssessments(sortedAssessments);
-            setLoading(false); // End loading state immediately once we have data
-
-            // Also cache in localStorage for faster access
-            localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
-            localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
+          if (Array.isArray(response.data)) { // Check if data is array before sorting
+             const sortedAssessments = response.data.sort((a, b) =>
+               new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+             );
+             setAssessments(sortedAssessments);
+             // Also cache in localStorage for faster access
+             localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
+             localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
+          } else {
+             console.warn('IMMEDIATE LOAD: Received non-array response for assessments:', response.data);
+             setAssessments([]); // Set to empty array if response is not as expected
           }
+          setLoading(false); // End loading state once we have data or confirmed no data
+
         } catch (err) {
           console.error('IMMEDIATE LOAD: Error loading assessments:', err);
+          setError('Failed to load assessments. Please try refreshing.'); // Set user-facing error
 
           // Try to load from cache as backup
           try {
@@ -156,67 +151,112 @@ const UserDashboard = () => {
               const parsedData = JSON.parse(cachedData);
               console.log('IMMEDIATE LOAD: Using cached data with', parsedData.length, 'assessments');
               setAssessments(parsedData);
-              setLoading(false);
+            } else {
+              setAssessments([]); // Ensure state is empty if cache is empty/invalid
             }
           } catch (cacheErr) {
             console.error('IMMEDIATE LOAD: Error using cached data:', cacheErr);
+            setAssessments([]); // Ensure state is empty on cache error
           }
+          setLoading(false); // Ensure loading stops even on error
         }
       };
 
-      // Execute immediate load
-      loadAllAssessments();
+      // Execute immediate load only if user exists
+      if (user) {
+        loadAllAssessments();
 
-      try {
-        console.log('Fetching user data...');
-        console.log('Auth token:', localStorage.getItem('token'));
-        console.log('User object:', user);
-
-        // Fetch appointments
         try {
-          console.log('Fetching appointments...');
-          const appointmentsRes = await api.get('/appointments');
-          console.log('Appointments response:', appointmentsRes.data);
-          setAppointments(appointmentsRes.data);
+          console.log('Fetching other user data...');
+          console.log('Auth token:', localStorage.getItem('token'));
+          console.log('User object:', user);
+
+          // Fetch appointments
+          try {
+            console.log('Fetching appointments...');
+            const appointmentsRes = await api.get('/appointments');
+            console.log('Appointments response:', appointmentsRes.data);
+            setAppointments(appointmentsRes.data || []); // Default to empty array
+          } catch (err) {
+            console.error('Error fetching appointments:', err.response?.status, err.response?.data || err.message);
+            setAppointments([]);
+          }
+
+          // Fetch documents
+          try {
+            console.log('Fetching documents...');
+            const documentsRes = await api.get('/documents');
+            console.log('Documents response:', documentsRes.data);
+            setDocuments(documentsRes.data || []); // Default to empty array
+          } catch (err) {
+            console.error('Error fetching documents:', err.response?.status, err.response?.data || err.message);
+            setDocuments([]);
+          }
+
         } catch (err) {
-          console.error('Error fetching appointments:', err.response?.status, err.response?.data || err.message);
-          setAppointments([]);
+          console.error('Error fetching user data (appointments/documents):', err);
+          setError(err.message || 'Failed to load user data. Please try again.');
+        } finally {
+          // Loading state is handled within loadAllAssessments now
+          // setLoading(false);
         }
-
-        // Fetch documents
-        try {
-          console.log('Fetching documents...');
-          const documentsRes = await api.get('/documents');
-          console.log('Documents response:', documentsRes.data);
-          setDocuments(documentsRes.data);
-        } catch (err) {
-          console.error('Error fetching documents:', err.response?.status, err.response?.data || err.message);
-          setDocuments([]);
-        }
-
-        // Fetch assessments directly from the database
-        // This section has been replaced by the immediate load mechanism above
-        // and the auto-refresh effect that continuously updates the data
-        console.log('LEGACY fetch method bypassed - using direct load and auto-refresh instead');
-
-        // We still need to do the rest of user data loading
-        // But assessments are already being loaded separately for better reliability
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError(err.message || 'Failed to load user data. Please try again.');
-      } finally {
-        setLoading(false);
+      } else {
+         // If no user, stop loading and set error
+         setLoading(false);
+         setError('Please log in to view your dashboard');
       }
     };
 
-    // Only fetch data if user is authenticated
-    if (user) {
-      fetchUserData();
-    } else {
-      setLoading(false);
-      setError('Please log in to view your dashboard');
+    fetchUserData();
+
+  }, [user]); // Rerun when user object changes (login/logout)
+
+  // Auto-refresh assessments - Moved BEFORE the early return
+  useEffect(() => {
+    // Only run if user is logged in and assessment tab is active
+    if (!user || tabValue !== 2) return;
+
+    console.log('Setting up assessment auto-refresh interval');
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing user assessments...');
+      api.get('/assessment/user') // Corrected endpoint
+        .then(response => {
+          if (Array.isArray(response.data)) {
+            const sortedAssessments = response.data.sort((a, b) =>
+              new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+            );
+            // Only update state if data has actually changed to prevent unnecessary re-renders
+            setAssessments(prevAssessments => {
+              if (JSON.stringify(prevAssessments) !== JSON.stringify(sortedAssessments)) {
+                console.log('Auto-refresh: Updating assessments state.');
+                localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
+                localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
+                return sortedAssessments;
+              }
+              return prevAssessments;
+            });
+          } else {
+             console.warn('Auto-refresh: Received non-array response for assessments:', response.data);
+          }
+        })
+        .catch(err => console.error('Auto-refresh error:', err));
+    }, 30000); // Refresh every 30 seconds
+
+    return () => {
+      console.log('Clearing assessment auto-refresh interval');
+      clearInterval(interval);
+    };
+  }, [user, tabValue]); // Rerun if user logs in/out or tab changes
+
+  // Clear incorrect token or bad auth data if user object incomplete - Moved BEFORE the early return
+  useEffect(() => {
+    if (user && (!user.id || !user.email)) {
+      console.error('User object is incomplete:', user);
+      // Consider logging out the user automatically if their data is corrupt
+      // logout(); // Optional: force logout
+      localStorage.removeItem('userId');
     }
-  }, [user]);
+  }, [user]); // Rerun if user object changes
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -323,7 +363,7 @@ const UserDashboard = () => {
         time: formattedTime
       });
 
-      setAppointments(prev => [...prev, response.data]);
+      setAppointments(prev => [...prev, response.data].sort((a, b) => new Date(b.date) - new Date(a.date))); // Add and sort
       setAppointmentDialogOpen(false);
 
       // Show success message or notification
@@ -435,7 +475,7 @@ const UserDashboard = () => {
         }
       });
 
-      setDocuments(prev => [...prev, response.data]);
+      setDocuments(prev => [...prev, response.data].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate))); // Add and sort
       setDocumentDialogOpen(false);
 
       // Show success message or notification
@@ -449,6 +489,7 @@ const UserDashboard = () => {
 
   const handleDownloadDocument = async (documentId) => {
     try {
+      // Use the API endpoint which should handle authentication
       window.open(`/api/documents/download/${documentId}`, '_blank');
     } catch (err) {
       console.error('Error downloading document:', err);
@@ -470,22 +511,26 @@ const UserDashboard = () => {
   // Debugging function to check assessment structure
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    try {
+       return format(new Date(dateString), 'PP'); // Format like 'Sep 21, 2023'
+    } catch (e) {
+       console.error("Error formatting date:", dateString, e);
+       return 'Invalid Date';
+    }
   };
 
   // Helper to get average pain level
   const getAveragePainLevel = (painLevels) => {
-    if (!painLevels || Object.keys(painLevels).length === 0) return 'No pain data';
+    if (!painLevels || typeof painLevels !== 'object' || Object.keys(painLevels).length === 0) return 'N/A';
 
-    const levels = Object.values(painLevels);
+    const levels = Object.values(painLevels).filter(level => typeof level === 'number');
+    if (levels.length === 0) return 'N/A';
+
     const sum = levels.reduce((total, level) => total + level, 0);
     return (sum / levels.length).toFixed(1);
   };
 
-  // DEBUG: Function to load mock assessments for testing
-  // The mock assessment function has been removed
-
-  // Show login prompt if not authenticated
+  // Show login prompt if not authenticated - Placed after hooks
   if (!user) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
@@ -522,97 +567,8 @@ const UserDashboard = () => {
     );
   }
 
-  // Clear any incorrect token or bad auth data if we get here but the user object is incomplete
-  if (user && (!user.id || !user.email)) {
-    console.error('User object is incomplete:', user);
-    localStorage.removeItem('userId');
-    // Don't remove token here - just log the error
-  }
-
-  // More aggressive auto-refresh to ensure assessments are always updated
-  useEffect(() => {
-    if (tabValue !== 2) return;
-
-    api.get('/assessment')
-      .then(response => {
-        if (Array.isArray(response.data)) {
-          const sortedAssessments = response.data.sort((a, b) =>
-            new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
-          );
-          setAssessments(sortedAssessments);
-          localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
-          localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
-        }
-      })
-      .catch(console.error);
-
-    const interval = setInterval(() => {
-      api.get('/assessment')
-        .then(response => {
-          if (Array.isArray(response.data)) {
-            const sortedAssessments = response.data.sort((a, b) =>
-              new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
-            );
-            setAssessments(sortedAssessments);
-            localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
-            localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
-          }
-        })
-        .catch(console.error);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [tabValue]);
-
-  // Show login prompt if not authenticated
-  if (!user) {
-    return (
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h4" gutterBottom>
-            Login Required
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 4 }}>
-            Please log in to view your dashboard and assessment history.
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/login')}
-              sx={{
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)'
-              }}
-            >
-              Login
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/register')}
-              sx={{ px: 4, py: 1.5, borderRadius: 2 }}
-            >
-              Create Account
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    );
-  }
-
-  // Clear incorrect token or bad auth data if user object incomplete
-  useEffect(() => {
-    if (user && (!user.id || !user.email)) {
-      console.error('User object is incomplete:', user);
-      localStorage.removeItem('userId');
-      // Don't remove token here - just log the error
-    }
-  }, [user]);
-
-
-  // Loading state
-  if (loading && !appointments.length && !documents.length && !assessments.length) {
+  // Loading state - Show only if truly loading initial data
+  if (loading && !assessments.length && !appointments.length && !documents.length) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
@@ -632,23 +588,28 @@ const UserDashboard = () => {
               variant="outlined"
               color="primary"
               onClick={() => {
-                // Force refresh assessments
-                api.get('/assessment')
+                // Force refresh assessments for the user
+                setLoading(true); // Indicate loading on manual refresh
+                api.get('/assessment/user') // Corrected endpoint
                   .then(response => {
-                    if (Array.isArray(response.data) && response.data.length > 0) {
-                      console.log('Manual refresh found', response.data.length, 'assessments');
-                      // Sort by date
+                    if (Array.isArray(response.data)) {
+                      console.log('Manual refresh found', response.data?.length || 0, 'assessments for user');
                       const sortedAssessments = response.data.sort((a, b) =>
                         new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
                       );
                       setAssessments(sortedAssessments);
+                      localStorage.setItem('cachedAssessments', JSON.stringify(sortedAssessments));
+                      localStorage.setItem('assessmentCacheTimestamp', Date.now().toString());
                     } else {
-                      console.log('Manual refresh found no assessments');
+                      console.log('Manual refresh found no assessments or invalid data');
+                      setAssessments([]); // Clear assessments if response is invalid
                     }
                   })
                   .catch(err => {
                     console.error('Error in manual assessment refresh:', err);
-                  });
+                    setError('Failed to refresh assessments.');
+                  })
+                  .finally(() => setLoading(false)); // Stop loading indicator
               }}
             >
               Refresh Data
@@ -674,7 +635,7 @@ const UserDashboard = () => {
 
 
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
@@ -719,7 +680,7 @@ const UserDashboard = () => {
             </Button>
           </Box>
 
-          {appointments.length === 0 ? (
+          {loading && appointments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : appointments.length === 0 ? (
             <Alert severity="info">
               You don't have any appointments yet. Book your first appointment now.
             </Alert>
@@ -748,7 +709,7 @@ const UserDashboard = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
                         <Typography variant="body1" color="text.secondary">
-                          Date: {new Date(appointment.date).toLocaleDateString()}
+                          Date: {formatDate(appointment.date)}
                         </Typography>
                       </Box>
 
@@ -766,11 +727,11 @@ const UserDashboard = () => {
                       )}
 
                       <Chip
-                        label={appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        label={appointment.status ? appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1) : 'Unknown'}
                         color={
                           appointment.status === 'scheduled' ? 'primary' :
                             appointment.status === 'completed' ? 'success' :
-                              appointment.status === 'cancelled' ? 'error' : 'warning'
+                              appointment.status === 'cancelled' ? 'error' : 'default'
                         }
                         size="small"
                         sx={{ mt: 2 }}
@@ -824,7 +785,7 @@ const UserDashboard = () => {
             </Button>
           </Box>
 
-          {documents.length === 0 ? (
+          {loading && documents.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : documents.length === 0 ? (
             <Alert severity="info">
               You don't have any documents yet. Upload your first document now.
             </Alert>
@@ -837,27 +798,27 @@ const UserDashboard = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                         <DocumentIcon color="primary" sx={{ mr: 1 }} />
                         <Typography variant="h6" component="div">
-                          {document.documentType.split('_').map(word =>
+                          {document.documentType ? document.documentType.split('_').map(word =>
                             word.charAt(0).toUpperCase() + word.slice(1)
-                          ).join(' ')}
+                          ).join(' ') : 'Unknown Type'}
                         </Typography>
                       </Box>
 
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {document.originalName}
+                        {document.originalName || 'No filename'}
                       </Typography>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
                         <Typography variant="body2" color="text.secondary">
-                          Document Date: {new Date(document.documentDate).toLocaleDateString()}
+                          Document Date: {formatDate(document.documentDate)}
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
                         <Typography variant="body2" color="text.secondary">
-                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                          Uploaded: {formatDate(document.uploadDate)}
                         </Typography>
                       </Box>
 
@@ -913,7 +874,6 @@ const UserDashboard = () => {
               Your Pain Assessments
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              {/* No test data buttons in production */}
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -925,7 +885,7 @@ const UserDashboard = () => {
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            {assessments.length === 0 ? (
+             {loading && assessments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : assessments.length === 0 ? (
               <>
                 <Alert severity="info" sx={{ mb: 3 }}>
                   You don't have any assessments yet. Start your first assessment now.
@@ -935,13 +895,13 @@ const UserDashboard = () => {
                   color="primary"
                   onClick={async () => {
                     try {
-                      // Force a direct check of all assessments without auth
-                      const directResponse = await api.get('/assessment');
-                      console.log('Direct check of all assessments:', directResponse.data);
-                      if (Array.isArray(directResponse.data) && directResponse.data.length > 0) {
-                        setAssessments(directResponse.data);
+                      // Force a direct check of user's assessments
+                      const userAssessmentsResponse = await api.get('/assessment/user'); // Corrected endpoint
+                      console.log('Direct check of user assessments:', userAssessmentsResponse.data);
+                      if (Array.isArray(userAssessmentsResponse.data) && userAssessmentsResponse.data.length > 0) {
+                        setAssessments(userAssessmentsResponse.data);
                       } else {
-                        console.log('No assessments found in direct check');
+                        console.log('No assessments found for user in direct check');
                       }
                     } catch (e) {
                       console.error('Error checking assessments directly:', e);
@@ -990,26 +950,7 @@ const UserDashboard = () => {
                   <Typography variant="body2" color="text.secondary">
                     Showing your pain assessments from the database.
                   </Typography>
-                  <Button
-                    variant="text"
-                    color="primary"
-                    size="small"
-                    onClick={() => {
-                      // Force immediate refresh
-                      api.get('/assessment')
-                        .then(response => {
-                          if (Array.isArray(response.data) && response.data.length > 0) {
-                            const sortedAssessments = response.data.sort((a, b) =>
-                              new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
-                            );
-                            setAssessments(sortedAssessments);
-                            console.log('Manual mini-refresh: updated to', sortedAssessments.length, 'assessments');
-                          }
-                        });
-                    }}
-                  >
-                    Refresh List
-                  </Button>
+                  {/* Removed manual refresh button here as auto-refresh is active */}
                 </Box>
               </>
             )}
@@ -1047,13 +988,13 @@ const UserDashboard = () => {
                       secondary={
                         <>
                           <Typography component="span" variant="body2" color="text.primary">
-                            {assessment.painLevels && Object.keys(assessment.painLevels).length > 0 ? (
+                            {assessment.painLevels && typeof assessment.painLevels === 'object' && Object.keys(assessment.painLevels).length > 0 ? (
                               <>
-                                Pain Level: {getAveragePainLevel(assessment.painLevels)} |
+                                Avg Pain: {getAveragePainLevel(assessment.painLevels)} |
                                 Pain Points: {Object.keys(assessment.painLevels || {}).length}
                               </>
                             ) : (
-                              <i>Pain data not available</i>
+                              <i>No pain data recorded</i>
                             )}
                           </Typography>
 
