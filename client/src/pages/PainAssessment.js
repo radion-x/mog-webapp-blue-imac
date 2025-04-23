@@ -21,7 +21,7 @@ import {
   Tooltip,
   IconButton,
   FormControlLabel,
-  Switch,
+  // Switch, // Removed unused import
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,10 +29,11 @@ import {
   DialogActions,
   RadioGroup,
   Radio,
-  Stack
+  TextField // Added TextField import
+  // Stack // Removed unused import
 } from '@mui/material';
-import { 
-  ArrowBack, 
+import {
+  ArrowBack,
   ArrowForward, 
   Help,
   CheckCircleOutline,
@@ -42,10 +43,10 @@ import {
 } from '@mui/icons-material';
 
 // Import THREE patching early to ensure it's available
-import { PatchedTHREE as THREE, testThreeJs } from '../utils/threeTest';
+import { /* PatchedTHREE as THREE, */ testThreeJs } from '../utils/threeTest'; // Commented out unused THREE import
 
 // Test if THREE.js is working - run the test immediately
-let threeJsWorking = false;
+let threeJsWorking = false; // Keep variable declaration even if THREE is unused for now
 try {
   console.log('Testing THREE.js functionality...');
   threeJsWorking = testThreeJs();
@@ -226,10 +227,11 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
     window.addEventListener('unhandledrejection', handleError);
     
     return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleError);
+    window.removeEventListener('error', handleError);
+    window.removeEventListener('unhandledrejection', handleError);
     };
-  }, [window.location.search, location]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]); // Removed window.location.search from dependency array
 
   const handlePainDataChange = (data) => {
     console.log('Pain data changed:', data);
@@ -258,12 +260,12 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
       setIsLoading(true);
       setError('');
       
-      const userInfo = {
-        name: localStorage.getItem('userName'),
-        email: localStorage.getItem('userEmail')
-      };
+      // const userInfo = { // Removed unused variable
+      //   name: localStorage.getItem('userName'),
+      //   email: localStorage.getItem('userEmail')
+      // };
       const assessmentId = localStorage.getItem('assessmentId');
-      
+
       if (!assessmentId) {
         setError('No assessment ID found. Please try starting again with a new assessment.');
         setIsLoading(false);
@@ -552,7 +554,7 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
             width: '100%',
             maxWidth: '1200px',
             mx: 'auto',
-            height: {xs: '70vh', sm: '80vh', md: '85vh'}, // Increased height for larger model view
+            height: {xs: '75vh', sm: '85vh', md: '90vh'}, // Further increased height for larger model view
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
@@ -593,22 +595,33 @@ const [showErrorDialog, setShowErrorDialog] = useState(false);
               )}
             </Paper>
 
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4">
-                Can you describe your pain and how it affects your daily life — including when it started, 
-                where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment?
-              </h3>
-              <textarea
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows="4"
+            {/* Pain Description Input - Using TextField */}
+            <Box sx={{ mt: 3, mb: 3 }}> {/* Added margin top and bottom */}
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Describe Your Pain Experience
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Please describe your pain and how it affects your daily life — including when it started, where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment.
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                variant="outlined" // Use outlined style consistent with MUI
+                label="Pain Description"
                 value={painDescription}
                 onChange={(e) => setPainDescription(e.target.value)}
-                placeholder="Describe your pain experience..."
+                placeholder="Enter details here..."
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px', // Adjusted border radius for a less rounded look
+                  },
+                }}
               />
-            </div>
+            </Box>
 
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               justifyContent: 'space-between',
               mt: 2,
               pt: 2,
