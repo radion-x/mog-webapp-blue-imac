@@ -39,6 +39,10 @@ const assessmentSchema = new mongoose.Schema({
     },
     default: {}
   },
+  painDescription: {
+    type: String,
+    default: ''
+  },
   medicalConditions: {
     herniatedDisc: { type: Boolean, default: false },
     spinalStenosis: { type: Boolean, default: false },
@@ -93,4 +97,4 @@ assessmentSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Assessment', assessmentSchema); 
+module.exports = mongoose.model('Assessment', assessmentSchema);

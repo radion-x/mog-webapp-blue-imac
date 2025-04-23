@@ -63,6 +63,8 @@ const generateAssessmentSummary = async (assessment) => {
       
       Pain levels: ${painData || 'No pain data provided'}
       
+      Pain description: ${assessment.painDescription || 'No additional description provided'}
+      
       Medical conditions: ${medicalConditions || 'None reported'}
       
       Previous surgeries: ${hasPreviousSurgery}
@@ -73,7 +75,8 @@ const generateAssessmentSummary = async (assessment) => {
       Previous treatments: ${treatments || 'None reported'}
       
       Based on this information, provide a brief, professional clinical summary of the patient's condition.
-      Focus on the key pain areas, severity, and any relevant medical history.
+      Focus on the key pain areas, severity, the patient's description of their experience, and any relevant medical history. 
+      Incorporate insights from the pain description about onset, location, aggravating/relieving factors, and treatment goals.
       Keep your summary to 3-4 sentences, making it concise and clinically relevant.
       Avoid repeating all the data. Instead, highlight what's most important for a clinician to know.
     `;

@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
 // Update pain assessment
 router.post('/pain-assessment', async (req, res) => {
   try {
-    const { userId, painLevels, timestamp } = req.body;
+    const { userId, painLevels, painDescription, timestamp } = req.body;
     
     console.log('Updating pain assessment for assessment ID:', userId);
     console.log('Pain levels:', painLevels);
@@ -50,8 +50,9 @@ router.post('/pain-assessment', async (req, res) => {
       return res.status(404).json({ message: 'Assessment not found' });
     }
 
-    // Update the pain levels and timestamp
+    // Update the pain levels, description and timestamp
     assessment.painLevels = painLevels;
+    assessment.painDescription = painDescription || '';
     assessment.timestamp = timestamp;
     
     await assessment.save();
@@ -348,4 +349,4 @@ router.put('/:id/link-user', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

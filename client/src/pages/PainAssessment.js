@@ -76,8 +76,9 @@ const PainAssessment = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [modelType, setModelType] = useState('3d'); // '3d', '2d', or 'simple'
   const [debugMode, setDebugMode] = useState(false);
-  const [threeJsError, setThreeJsError] = useState(null);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
+const [threeJsError, setThreeJsError] = useState(null);
+const [painDescription, setPainDescription] = useState('');
+const [showErrorDialog, setShowErrorDialog] = useState(false);
 
   // Error handler for THREE.js errors
   const handleThreeJsError = (error) => {
@@ -275,6 +276,7 @@ const PainAssessment = () => {
       const assessmentData = {
         userId: assessmentId,
         painLevels: painData,
+        painDescription: painDescription, // Add description
         timestamp: new Date().toISOString()
       };
 
@@ -590,6 +592,20 @@ const PainAssessment = () => {
                 />
               )}
             </Paper>
+
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">
+                Can you describe your pain and how it affects your daily life — including when it started, 
+                where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment?
+              </h3>
+              <textarea
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows="4"
+                value={painDescription}
+                onChange={(e) => setPainDescription(e.target.value)}
+                placeholder="Describe your pain experience..."
+              />
+            </div>
 
             <Box sx={{ 
               display: 'flex', 
