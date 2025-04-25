@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import CssBaseline from '@mui/material/CssBaseline';
+import HomePage from './pages/HomePage'; // Import the new HomePage
 import IntroPage from './pages/IntroPage';
 import PainAssessment from './pages/PainAssessment';
 import TreatmentHistoryPage from './pages/TreatmentHistoryPage';
@@ -32,6 +33,10 @@ const cache = createCache({
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <HomePage />, // Use HomePage for the root path
+  },
+  {
+    path: '/intro', // Move IntroPage to /intro
     element: <IntroPage />,
   },
   {
