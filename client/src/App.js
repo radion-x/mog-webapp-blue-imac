@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo, createContext, useContext, useEffect } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
@@ -14,7 +14,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout'; // Import the Layout component
-import { theme } from './theme';
+import { lightTheme, darkTheme } from './theme'; // Import both themes
 import './App.css';
 import { Box, Typography, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -30,7 +30,16 @@ const cache = createCache({
   stylisPlugins: [],
 });
 
-// Create router configuration
+// Create a context for theme management
+export const ThemeContext = createContext({
+  themeMode: 'light',
+  toggleThemeMode: () => {},
+});
+
+// Custom hook to use the theme context
+export const useThemeContext = () => useContext(ThemeContext);
+
+// Create router configuration (remains the same, Layout will consume context)
 const router = createBrowserRouter([
   {
     path: '/',
@@ -138,16 +147,47 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  // State to manage the theme mode ('light' or 'dark')
+  const [themeMode, setThemeMode] = useState('dark'); // Default to dark as requested
+
+  // Function to toggle the theme mode
+  const toggleThemeMode = () => {
+    setThemeMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+  };
+
+  // Select the theme object based on the current mode
+  const activeTheme = useMemo(
+    () => (themeMode === 'light' ? lightTheme : darkTheme),
+    [themeMode]
+  );
+
+  // Add/remove 'dark-theme' class to body based on themeMode
+  useEffect(() => {
+    document.body.classList.remove('light-theme', 'dark-theme'); // Clear existing theme classes
+    document.body.classList.add(themeMode === 'dark' ? 'dark-theme' : 'light-theme');
+  }, [themeMode]);
+
+  // Value for the ThemeContext provider
+  const themeContextValue = useMemo(
+    () => ({ themeMode, toggleThemeMode }),
+    [themeMode] // Keep dependency array as is
+  );
+
   return (
     <CacheProvider value={cache}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline /> {/* Keep CssBaseline for base styling */}
-        <AuthProvider>
-          <AppProvider>
-            <RouterProvider router={router} />
-          </AppProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      {/* Provide theme mode and toggle function via context */}
+      <ThemeContext.Provider value={themeContextValue}>
+        {/* Apply the selected MUI theme */}
+        <ThemeProvider theme={activeTheme}>
+          <CssBaseline /> {/* Keep CssBaseline for base styling */}
+          <AuthProvider>
+            <AppProvider>
+              {/* RouterProvider now lives within the ThemeProvider and ThemeContext */}
+              <RouterProvider router={router} />
+            </AppProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </ThemeContext.Provider>
     </CacheProvider>
   );
 }

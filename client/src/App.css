@@ -173,3 +173,66 @@ body {
 .fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Dark Theme Overrides */
+body.dark-theme {
+  /* Use dark theme palette values from theme/index.js */
+  --primary-color: #60a5fa; /* Blue-400 */
+  --primary-hover: #3b82f6; /* Blue-500 */
+  --secondary-color: #94a3b8; /* Slate-400 */
+  --success-color: #34d399; /* Emerald-400 */
+  --danger-color: #f87171; /* Red-400 */
+  --warning-color: #fbbf24; /* Amber-400 */
+  --background-light: #0f172a; /* Slate-900 */
+  --background-white: #1e293b; /* Slate-800 */
+  --text-primary: #f1f5f9; /* Slate-100 */
+  --text-secondary: #cbd5e1; /* Slate-300 */
+  --border-color: #334155; /* Slate-700 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2); /* Darker shadows */
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+}
+
+/* Adjust specific elements for dark theme if needed */
+body.dark-theme .card {
+  background: var(--background-white); /* Use the dark paper color */
+  box-shadow: var(--shadow-lg); /* Use the darker shadow */
+}
+
+body.dark-theme .input {
+  background-color: var(--background-white);
+  border-color: var(--border-color);
+  color: var(--text-primary); /* Ensure input text is light */
+}
+
+body.dark-theme .input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2); /* Adjust focus shadow color */
+}
+
+body.dark-theme .btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-primary); /* Adjust text color for light primary */
+}
+
+body.dark-theme .btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+body.dark-theme .btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-primary); /* Adjust text color for light secondary */
+}
+
+body.dark-theme .error-message {
+  background-color: #7f1d1d; /* Match MUI dark alert */
+  color: #fecaca;
+  border-left-color: var(--danger-color);
+}
+
+body.dark-theme .success-message {
+  background-color: #064e3b; /* Match MUI dark alert */
+  color: #a7f3d0;
+  border-left-color: var(--success-color);
+}

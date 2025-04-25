@@ -1,10 +1,15 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Fab, useTheme } from '@mui/material'; // Removed AppBar, Toolbar, IconButton. Added Fab
+import Brightness4Icon from '@mui/icons-material/Brightness4'; // Dark mode icon
+import Brightness7Icon from '@mui/icons-material/Brightness7'; // Light mode icon
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim"; // Using slim bundle
+import { useThemeContext } from '../App'; // Import the context hook
 
 function Layout({ children }) {
   const [init, setInit] = useState(false);
+  const { themeMode, toggleThemeMode } = useThemeContext(); // Consume theme context
+  const theme = useTheme(); // Get the current MUI theme object for colors (still needed for AppBar/Content)
 
   // Initialize tsparticles engine once
   useEffect(() => {
@@ -21,14 +26,15 @@ function Layout({ children }) {
     // Optional callback
   }, []);
 
-  // Memoize options
+  // Memoize options - Dynamic based on theme for background AND particle/link colors
   const particleOptions = useMemo(() => ({
     background: {
       color: {
-        value: "#0d1117", // Dark background consistent with HomePage
+        // Use the theme's default background for the particle canvas itself
+        value: theme.palette.background.default,
       },
     },
-    fpsLimit: 60,
+    fpsLimit: 60, // Keep original fpsLimit
     interactivity: {
       events: {
         onHover: {
@@ -46,13 +52,15 @@ function Layout({ children }) {
     },
     particles: {
       color: {
-        value: "#ffffff",
+        // Use the theme's primary text color for the particles
+        value: theme.palette.text.primary,
       },
       links: {
-        color: "#ffffff",
+        // Use the theme's primary text color for the links
+        color: theme.palette.text.primary,
         distance: 150,
         enable: true,
-        opacity: 0.2,
+        opacity: 0.2, // Adjust opacity if needed for visibility on light/dark
         width: 1,
       },
       collisions: {
@@ -86,49 +94,71 @@ function Layout({ children }) {
       },
     },
     detectRetina: true,
-  }), []);
+    // Options now depend on the theme's background and text colors
+  }), [theme.palette.background.default, theme.palette.text.primary]);
 
   return (
     <Box sx={{
       minHeight: '100vh',
       width: '100%',
       position: 'relative',
-      overflow: 'hidden',
-      display: 'flex', // Use flex to center content potentially
+      overflow: 'hidden', // Keep overflow hidden
+      display: 'flex',
       flexDirection: 'column',
-      // justifyContent: 'center', // Center content vertically if needed
-      // alignItems: 'center', // Center content horizontally if needed
-      backgroundColor: '#0d1117' // Fallback background
+      // The main Box background is already correctly set by the theme
+      backgroundColor: theme.palette.background.default,
     }}>
+      {/* Particles Background (Now dynamically themed based on MUI theme) */}
       {init ? (
         <Particles
-          id="tsparticles-layout" // Unique ID for layout particles
+          id="tsparticles-layout"
           loaded={particlesLoaded}
           options={particleOptions}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: 0,
             left: 0,
             width: '100%',
             height: '100%',
-            zIndex: 0 // Background layer
+            zIndex: -1 // Keep behind content
           }}
         />
       ) : (
-        <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', zIndex: 0 }} />
+        <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
       )}
-      {/* Content Area */}
-      <Box sx={{
-        position: 'relative',
-        zIndex: 1, // Ensure content is above particles
-        width: '100%',
-        flexGrow: 1, // Allow content to take available space
-        display: 'flex',
-        flexDirection: 'column',
-        // Add padding or other styling for content area if needed
-        // p: 3 // Example padding
-      }}>
-        {children} {/* Render the specific page content here */}
+
+      {/* Floating Action Button for Theme Toggle */}
+      <Fab
+        size="small"
+        onClick={toggleThemeMode}
+        color="primary" // Changed to primary color for potentially better contrast
+        aria-label="toggle theme"
+        sx={{
+          position: 'fixed',
+          bottom: 16, // 16px from bottom
+          right: 16, // 16px from right
+          zIndex: theme.zIndex.drawer + 2 // Ensure it's above most content
+        }}
+      >
+        {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+      </Fab>
+
+      {/* Main Content Area */}
+      <Box
+        component="main"
+        sx={{
+          position: 'relative', // Keep relative for z-index stacking if needed later
+          zIndex: 1, // Ensure content is above the fixed particles background
+          flexGrow: 1, // Allow content area to grow
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          // Add padding to prevent content from hiding behind AppBar if AppBar wasn't transparent/minimal
+          // pt: `${theme.mixins.toolbar.minHeight}px`, // Example if AppBar had solid background
+          p: 3, // Add general padding for content spacing
+        }}
+      >
+        {children} {/* Render the specific page content */}
       </Box>
     </Box>
   );
