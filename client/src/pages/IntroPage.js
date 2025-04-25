@@ -14,19 +14,12 @@ import {
   useTheme,
   CircularProgress,
   Divider,
-  Grid
+  Grid,
+  Avatar
 } from '@mui/material';
-import { ArrowForward } from '@mui/icons-material';
+import { ArrowForward, LocalHospital } from '@mui/icons-material';
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  marginBottom: theme.spacing(3),
-  borderRadius: theme.spacing(2),
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    boxShadow: theme.shadows[4]
-  }
-}));
+// Removed unused StyledPaper definition here, applying styles directly or via sx prop
 
 const IntroPage = () => {
   const theme = useTheme();
@@ -216,56 +209,57 @@ const IntroPage = () => {
   };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       minHeight: '100vh',
-      bgcolor: 'grey.50',
-      py: 4,
-      backgroundImage: 'linear-gradient(to bottom right, #f7fafc, #edf2f7)'
+      py: 6, // Increased padding
+      background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`, // Enhanced gradient
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
-      <Container maxWidth="md">
-        <Paper elevation={3} sx={{ p: 4, mt: 8, borderRadius: 2 }}>
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
+      <Container maxWidth="sm"> {/* Changed to sm for a potentially narrower form */}
+        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(5px)' }}> {/* Increased padding, rounded corners, slight transparency */}
+          <Box sx={{ textAlign: 'center', mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main', width: 56, height: 56, mb: 2 }}> {/* Added Icon Avatar */}
+              <LocalHospital fontSize="large" />
+            </Avatar>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
               Pain Assessment Tool
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
-              Register to start your pain assessment
+              Register below to begin your personalized assessment.
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
             <Button
-              variant="outlined"
+              variant="text" // Changed to text for less emphasis
               component={Link}
               to="/login"
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, textTransform: 'none' }} // Added textTransform
             >
               Already have an account? Login
             </Button>
           </Box>
 
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              Register & Start Assessment
-            </Typography>
-          </Divider>
+          {/* Removed Divider for a cleaner look */}
 
           {apiError && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 4,
-                borderRadius: 2,
-                boxShadow: theme.shadows[2]
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3, // Adjusted margin
+                borderRadius: 1, // Slightly less rounded
               }}
             >
               {apiError}
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate> {/* Added noValidate */}
             <TextField
               fullWidth
+              variant="filled" // Changed variant
               label="Full Name"
               id="name"
               name="name"
@@ -277,11 +271,12 @@ const IntroPage = () => {
               autoComplete="name"
               error={!!errors.name}
               helperText={errors.name}
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }} // Reduced margin
             />
 
             <TextField
               fullWidth
+              variant="filled" // Changed variant
               label="Email Address"
               type="email"
               id="email"
@@ -294,13 +289,14 @@ const IntroPage = () => {
               autoComplete="email"
               error={!!errors.email}
               helperText={errors.email}
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }} // Reduced margin
             />
 
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ mb: 2 }}> {/* Reduced bottom margin */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
+                  variant="filled" // Changed variant
                   label="Password"
                   type="password"
                   id="password"
@@ -318,6 +314,7 @@ const IntroPage = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
+                  variant="filled" // Changed variant
                   label="Confirm Password"
                   type="password"
                   id="confirmPassword"
@@ -337,20 +334,24 @@ const IntroPage = () => {
             <Button
               type="submit"
               variant="contained"
+              color="primary" // Use theme primary color
               size="large"
               fullWidth
               disabled={isLoading}
               endIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <ArrowForward />}
               sx={{
-                mt: 4,
-                borderRadius: 2,
+                mt: 3, // Adjusted margin
+                borderRadius: 50, // Pill shape
                 py: 1.5,
                 textTransform: 'none',
-                fontWeight: 600,
-                background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
-                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                fontWeight: 'bold', // Bolder text
+                fontSize: '1rem',
+                // Removed custom gradient, rely on theme
+                boxShadow: theme.shadows[3],
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
+                  boxShadow: theme.shadows[6],
+                  // Slightly darker on hover if needed, theme might handle this
+                  // backgroundColor: theme.palette.primary.dark 
                 }
               }}
             >
@@ -363,4 +364,4 @@ const IntroPage = () => {
   );
 };
 
-export default IntroPage; 
+export default IntroPage;

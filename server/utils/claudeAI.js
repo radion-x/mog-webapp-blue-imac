@@ -74,11 +74,12 @@ const generateAssessmentSummary = async (assessment) => {
       
       Previous treatments: ${treatments || 'None reported'}
       
-      Based on this information, provide a brief, professional clinical summary of the patient's condition.
-      Focus on the key pain areas, severity, the patient's description of their experience, and any relevant medical history. 
-      Incorporate insights from the pain description about onset, location, aggravating/relieving factors, and treatment goals.
-      Keep your summary to 3-4 sentences, making it concise and clinically relevant.
-      Avoid repeating all the data. Instead, highlight what's most important for a clinician to know.
+Based on this information, provide a friendly, personalized summary of your pain experience.
+Focus on explaining your key pain areas, severity, and patterns in straightforward language that helps you understand what is happening in your body.
+Include insights about what might be triggering or relieving your pain based on the information you have shared, and how it connects to your daily activities.
+Take the space needed to properly explain your situation - do not feel limited to just a few sentences if more detail would be helpful for your understanding.
+Add 3-5 practical recommendations that could help manage your specific pain based on what you have reported, with brief explanations of why each might help in your particular case.
+Keep your summary conversational and supportive while still being informative enough to give you a clear picture of your pain patterns and potential solutions.
     `;
     
     // Call Claude API with the prompt
