@@ -145,29 +145,35 @@ const Register = () => {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
+    // Container adjusted to center content within the Layout
+    <Container component="main" maxWidth="sm" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, py: 4 }}>
+      {/* Paper adjusted for dark theme */}
       <Paper
-        elevation={3}
+        elevation={6} // Increased elevation
         sx={{
-          p: 4,
-          mt: 8,
+          p: { xs: 3, sm: 4 }, // Adjusted padding
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          borderRadius: 2
+          borderRadius: 3, // Match other forms
+          backgroundColor: 'rgba(20, 25, 35, 0.8)', // Dark, semi-transparent background
+          backdropFilter: 'blur(8px)', // Match other forms
+          width: '100%',
+          color: 'white' // Default text color
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}> {/* Bolder title */}
           Create Your Account
         </Typography>
         
         {apiError && (
-          <Alert severity="error" sx={{ width: '100%', mb: 3 }}>
+          <Alert severity="error" variant="filled" sx={{ width: '100%', mb: 3, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}> {/* Filled alert */}
             {apiError}
           </Alert>
         )}
         
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+          {/* TextField styles updated for dark mode */}
           <TextField
             margin="normal"
             required
@@ -182,6 +188,8 @@ const Register = () => {
             error={!!errors.name}
             helperText={errors.name}
             disabled={loading}
+            variant="filled" // Use filled variant
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
           />
           
           <TextField
@@ -197,6 +205,8 @@ const Register = () => {
             error={!!errors.email}
             helperText={errors.email || "Use a valid email format (e.g., name@example.com)"}
             disabled={loading}
+            variant="filled" // Use filled variant
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
           />
           
           <Grid container spacing={2}>
@@ -215,6 +225,8 @@ const Register = () => {
                 error={!!errors.password}
                 helperText={errors.password || "Minimum 6 characters"}
                 disabled={loading}
+                variant="filled" // Use filled variant
+                sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -232,36 +244,45 @@ const Register = () => {
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
                 disabled={loading}
+                variant="filled" // Use filled variant
+                sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
               />
             </Grid>
           </Grid>
           
+          {/* Button style updated to match HomePage/IntroPage/Login */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ 
-              mt: 3, 
+            size="large" // Match other forms
+            sx={{
+              mt: 3,
               mb: 2,
+              px: 5, // Match padding
               py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '1rem',
-              background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
+              fontSize: '1rem', // Match font size
+              backgroundColor: 'rgba(255, 255, 255, 0.95)', // Match background
+              color: '#1a1a2e', // Match text color
+              fontWeight: 'bold',
+              borderRadius: 2, // Standard shape
               '&:hover': {
-                background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
-              }
+                backgroundColor: 'rgba(255, 255, 255, 1)',
+                transform: 'scale(1.03)',
+                boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+              },
+              transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
             }}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Register'}
+            {loading ? <CircularProgress size={24} sx={{ color: '#1a1a2e' }} /> : 'Register'} {/* Ensure spinner color matches text */}
           </Button>
           
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Typography variant="body2">
+            {/* Link color updated */}
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               Already have an account?{' '}
-              <Link to="/login" style={{ textDecoration: 'none', color: '#2b6cb0' }}>
+              <Link to="/login" style={{ textDecoration: 'none', color: '#bb86fc' }}> {/* Use a lighter, distinct color for links */}
                 Login here
               </Link>
             </Typography>
@@ -269,14 +290,21 @@ const Register = () => {
         </Box>
       </Paper>
       
+      {/* Snackbar styling for dark theme */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
         message={snackbarMessage}
+        ContentProps={{
+          sx: {
+            backgroundColor: 'success.main', // Use theme success color
+            color: 'white', // Ensure text is readable
+          }
+        }}
       />
     </Container>
   );
 };
 
-export default Register; 
+export default Register;

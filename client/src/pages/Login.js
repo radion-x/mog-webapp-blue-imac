@@ -37,39 +37,43 @@ const Login = () => {
         [name]: ''
       }));
     }
+     // Clear API error when user makes changes
+    if (apiError) {
+      setApiError('');
+    }
   };
 
   const validate = () => {
     const newErrors = {};
-    
+
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     setLoading(true);
     setApiError('');
-    
+
     try {
       console.log('Sending login request...');
       const response = await api.post('/auth/login', formData);
-      
+
       console.log('Login response:', response.data);
-      
+
       if (response.data.token) {
         console.log('Attempting to set token and login...');
         const success = await login(response.data.token);
@@ -98,29 +102,35 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    // Container adjusted to center content within the Layout
+    <Container component="main" maxWidth="xs" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, py: 4 }}>
+      {/* Paper adjusted for dark theme */}
       <Paper
-        elevation={3}
+        elevation={6} // Increased elevation for more depth
         sx={{
-          p: 4,
-          mt: 8,
+          p: { xs: 3, sm: 4 }, // Adjusted padding
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          borderRadius: 2
+          borderRadius: 3, // Match IntroPage border radius
+          backgroundColor: 'rgba(20, 25, 35, 0.8)', // Dark, semi-transparent background
+          backdropFilter: 'blur(8px)', // Match IntroPage blur
+          width: '100%',
+          color: 'white' // Default text color
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}> {/* Bolder title */}
           Login to Your Account
         </Typography>
-        
+
         {apiError && (
-          <Alert severity="error" sx={{ width: '100%', mb: 3 }}>
+          <Alert severity="error" variant="filled" sx={{ width: '100%', mb: 3, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}> {/* Filled alert */}
             {apiError}
           </Alert>
         )}
-        
+
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+          {/* TextField styles updated for dark mode */}
           <TextField
             margin="normal"
             required
@@ -135,8 +145,10 @@ const Login = () => {
             error={!!errors.email}
             helperText={errors.email}
             disabled={loading}
+            variant="filled" // Use filled variant
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
           />
-          
+
           <TextField
             margin="normal"
             required
@@ -151,50 +163,52 @@ const Login = () => {
             error={!!errors.password}
             helperText={errors.password}
             disabled={loading}
+            variant="filled" // Use filled variant
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
           />
-          
+
+          {/* Button style updated to match HomePage/IntroPage */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ 
-              mt: 3, 
+            size="large" // Match IntroPage button size
+            sx={{
+              mt: 3,
               mb: 2,
+              px: 5, // Match padding
               py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '1rem',
-              background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
+              fontSize: '1rem', // Match font size
+              backgroundColor: 'rgba(255, 255, 255, 0.95)', // Match background
+              color: '#1a1a2e', // Match text color
+              fontWeight: 'bold',
+              borderRadius: 2, // Standard shape
               '&:hover': {
-                background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
-              }
+                backgroundColor: 'rgba(255, 255, 255, 1)',
+                transform: 'scale(1.03)',
+                boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+              },
+              transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
             }}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Login'}
+            {loading ? <CircularProgress size={24} sx={{ color: '#1a1a2e' }} /> : 'Login'} {/* Ensure spinner color matches text */}
           </Button>
-          
+
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Typography variant="body2">
+            {/* Link color updated */}
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               Don't have an account?{' '}
-              <Link to="/register" style={{ textDecoration: 'none', color: '#2b6cb0' }}>
+              <Link to="/register" style={{ textDecoration: 'none', color: '#bb86fc' }}> {/* Use a lighter, distinct color for links */}
                 Register here
               </Link>
             </Typography>
           </Box>
-          
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Typography variant="body2">
-              <Link to="/" style={{ textDecoration: 'none', color: '#2b6cb0' }}>
-                Continue without account
-              </Link>
-            </Typography>
-          </Box>
+          {/* Ensure this Box closes the form Box */}
         </Box>
       </Paper>
     </Container>
   );
 };
 
-export default Login; 
+export default Login;

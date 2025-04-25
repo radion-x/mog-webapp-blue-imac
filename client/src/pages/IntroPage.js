@@ -209,34 +209,29 @@ const IntroPage = () => {
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      py: 6, // Increased padding
-      background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`, // Enhanced gradient
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <Container maxWidth="sm"> {/* Changed to sm for a potentially narrower form */}
-        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(5px)' }}> {/* Increased padding, rounded corners, slight transparency */}
-          <Box sx={{ textAlign: 'center', mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main', width: 56, height: 56, mb: 2 }}> {/* Added Icon Avatar */}
+    // Removed outer Box styling, Layout component handles background and centering
+    <Container maxWidth="sm" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, py: 4 }}>
+        {/* Adjusted Paper styling for dark theme */}
+        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 3, backgroundColor: 'rgba(20, 25, 35, 0.8)', backdropFilter: 'blur(8px)', width: '100%' }}>
+          <Box sx={{ textAlign: 'center', mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white' }}> {/* Ensure text color is white */}
+            <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56, mb: 2 }}> {/* Use primary color for Avatar */}
               <LocalHospital fontSize="large" />
             </Avatar>
             <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
               Pain Assessment Tool
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
+            {/* Make secondary text lighter */}
+            <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               Register below to begin your personalized assessment.
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
             <Button
-              variant="text" // Changed to text for less emphasis
+              variant="text"
               component={Link}
               to="/login"
-              sx={{ mr: 2, textTransform: 'none' }} // Added textTransform
+              sx={{ mr: 2, textTransform: 'none', color: 'primary.light' }} // Lighter color for link
             >
               Already have an account? Login
             </Button>
@@ -247,9 +242,12 @@ const IntroPage = () => {
           {apiError && (
             <Alert
               severity="error"
+              variant="filled" // Use filled variant for better visibility
               sx={{
-                mb: 3, // Adjusted margin
-                borderRadius: 1, // Slightly less rounded
+                mb: 3,
+                borderRadius: 1,
+                // Ensure text is readable
+                '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' }, // Default dark text on light background
               }}
             >
               {apiError}
@@ -271,12 +269,12 @@ const IntroPage = () => {
               autoComplete="name"
               error={!!errors.name}
               helperText={errors.name}
-              sx={{ mb: 2 }} // Reduced margin
+              sx={{ mb: 2, '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' } }}
             />
 
             <TextField
               fullWidth
-              variant="filled" // Changed variant
+              variant="filled"
               label="Email Address"
               type="email"
               id="email"
@@ -289,14 +287,14 @@ const IntroPage = () => {
               autoComplete="email"
               error={!!errors.email}
               helperText={errors.email}
-              sx={{ mb: 2 }} // Reduced margin
+              sx={{ mb: 2, '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' } }}
             />
 
-            <Grid container spacing={2} sx={{ mb: 2 }}> {/* Reduced bottom margin */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  variant="filled" // Changed variant
+                  variant="filled"
                   label="Password"
                   type="password"
                   id="password"
@@ -309,12 +307,13 @@ const IntroPage = () => {
                   autoComplete="new-password"
                   error={!!errors.password}
                   helperText={errors.password || "Minimum 6 characters"}
+                  sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  variant="filled" // Changed variant
+                  variant="filled"
                   label="Confirm Password"
                   type="password"
                   id="confirmPassword"
@@ -327,32 +326,35 @@ const IntroPage = () => {
                   autoComplete="new-password"
                   error={!!errors.confirmPassword}
                   helperText={errors.confirmPassword}
+                  sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
                 />
               </Grid>
             </Grid>
 
+            {/* Update Button style to match HomePage */}
             <Button
               type="submit"
               variant="contained"
-              color="primary" // Use theme primary color
+              // color="primary" // Use custom styling instead of theme color
               size="large"
               fullWidth
               disabled={isLoading}
               endIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <ArrowForward />}
               sx={{
-                mt: 3, // Adjusted margin
-                borderRadius: 50, // Pill shape
+                mt: 3,
+                px: 5, // Match HomePage button padding
                 py: 1.5,
-                textTransform: 'none',
-                fontWeight: 'bold', // Bolder text
-                fontSize: '1rem',
-                // Removed custom gradient, rely on theme
-                boxShadow: theme.shadows[3],
+                fontSize: '1rem', // Match HomePage button font size
+                backgroundColor: 'rgba(255, 255, 255, 0.95)', // Match HomePage button background
+                color: '#1a1a2e', // Match HomePage button text color
+                fontWeight: 'bold',
+                borderRadius: 2, // Standard button shape
                 '&:hover': {
-                  boxShadow: theme.shadows[6],
-                  // Slightly darker on hover if needed, theme might handle this
-                  // backgroundColor: theme.palette.primary.dark 
-                }
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                  transform: 'scale(1.03)', // Slightly less scale
+                  boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)', // Subtle glow
+                },
+                transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
               }}
             >
               {isLoading ? 'Processing...' : 'Register & Start Assessment'}
@@ -360,7 +362,7 @@ const IntroPage = () => {
           </form>
         </Paper>
       </Container>
-    </Box>
+    // </Box> // Removed outer Box
   );
 };
 

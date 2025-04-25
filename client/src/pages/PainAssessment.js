@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/axios';
 import BodyModel3D from '../components/BodyModel3D';
@@ -11,7 +11,7 @@ import {
   Typography,
   Alert,
   Button,
-  styled,
+  // styled, // Removed unused import
   useTheme,
   CircularProgress,
   Stepper,
@@ -21,7 +21,6 @@ import {
   Tooltip,
   IconButton,
   FormControlLabel,
-  // Switch, // Removed unused import
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,8 +28,8 @@ import {
   DialogActions,
   RadioGroup,
   Radio,
-  TextField // Added TextField import
-  // Stack // Removed unused import
+  TextField,
+  Grid // Added Grid import
 } from '@mui/material';
 import {
   ArrowBack,
@@ -40,18 +39,18 @@ import {
   RestartAlt,
   Warning,
   BugReport as BugReportIcon,
-  TouchApp as TouchAppIcon, // Added icon for instruction text
-  ArrowUpward, // Icon for Back view
-  ArrowDownward, // Icon for Front view
-  ArrowBackIosNew, // Icon for Left view
-  ArrowForwardIos // Icon for Right view
+  TouchApp as TouchAppIcon,
+  ArrowUpward,
+  ArrowDownward,
+  ArrowBackIosNew,
+  ArrowForwardIos
 } from '@mui/icons-material';
 
 // Import THREE patching early to ensure it's available
-import { /* PatchedTHREE as THREE, */ testThreeJs } from '../utils/threeTest'; // Commented out unused THREE import
+import { testThreeJs } from '../utils/threeTest';
 
 // Test if THREE.js is working - run the test immediately
-let threeJsWorking = false; // Keep variable declaration even if THREE is unused for now
+let threeJsWorking = false;
 try {
   console.log('Testing THREE.js functionality...');
   threeJsWorking = testThreeJs();
@@ -60,52 +59,38 @@ try {
   console.error('THREE.js initialization test error:', error);
 }
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  marginBottom: theme.spacing(3),
-  borderRadius: theme.spacing(2),
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    boxShadow: theme.shadows[4]
-  }
-}));
-
 const steps = ['Treatment History', 'Pain Assessment', 'Summary'];
 
 const PainAssessment = () => {
-  const theme = useTheme();
+  const theme = useTheme(); // Keep theme for potential use later
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [painData, setPainData] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [modelType, setModelType] = useState('3d'); // '3d', '2d', or 'simple'
+  const [modelType, setModelType] = useState('3d'); // '3d', 'simple'
   const [debugMode, setDebugMode] = useState(false);
   const [threeJsError, setThreeJsError] = useState(null);
   const [painDescription, setPainDescription] = useState('');
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const modelRef = useRef(); // Ref for BodyModel3D component
+  const modelRef = useRef();
 
-  // Error handler for THREE.js errors
   const handleThreeJsError = (error) => {
     console.error('THREE.js error detected:', error);
     setThreeJsError(error);
     setShowErrorDialog(true);
-    // Switch to simple model if error persists
     if (error.toString().includes('WebGL') || error.toString().includes('THREE')) {
       setModelType('simple');
     }
   };
 
-  // Reset THREE.js error state and try 3D model again
   const resetThreeJsError = () => {
     console.log('Resetting THREE.js error state');
     localStorage.removeItem('three_js_error');
     setThreeJsError(null);
     setModelType('3d');
     setShowErrorDialog(false);
-    // Force reload only if necessary
     if (window.location.hash === '#force-reload') {
       window.location.reload();
     } else {
@@ -114,39 +99,25 @@ const PainAssessment = () => {
   };
 
   useEffect(() => {
-    // Get assessment ID from URL parameters or location state
     const queryParams = new URLSearchParams(window.location.search);
     const idFromQuery = queryParams.get('id');
     const idFromState = location.state?.assessmentId;
     const idFromStorage = localStorage.getItem('assessmentId');
 
-    console.log('Pain Assessment - ID sources:', {
-      query: idFromQuery,
-      state: idFromState,
-      storage: idFromStorage
-    });
+    console.log('Pain Assessment - ID sources:', { query: idFromQuery, state: idFromState, storage: idFromStorage });
 
-    // If no assessment ID is available, we need to create one
     if (!idFromQuery && !idFromState && !idFromStorage) {
       console.log('No assessment ID found. Creating a temporary one...');
-      // Create a temporary assessment
       const createTemporaryAssessment = async () => {
         try {
           setIsLoading(true);
-          const response = await api.post('/assessment', {
-            name: 'Temporary User',
-            email: 'temp@example.com'
-          });
-
+          const response = await api.post('/assessment', { name: 'Temporary User', email: 'temp@example.com' });
           console.log('Temporary assessment created:', response.data);
-
           if (response.data && response.data._id) {
             const newAssessmentId = response.data._id;
             localStorage.setItem('assessmentId', newAssessmentId);
             localStorage.setItem('userName', 'Temporary User');
             localStorage.setItem('userEmail', 'temp@example.com');
-
-            // Also add to known assessment IDs registry for user dashboard display
             try {
               const knownAssessmentIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
               if (!knownAssessmentIds.includes(newAssessmentId)) {
@@ -154,16 +125,8 @@ const PainAssessment = () => {
                 localStorage.setItem('knownAssessmentIds', JSON.stringify(knownAssessmentIds));
                 console.log('Added new assessment to known IDs registry:', newAssessmentId);
               }
-            } catch (e) {
-              console.error('Error updating known assessment IDs:', e);
-            }
-
-            // This will force a re-render without reloading the page
-            window.history.replaceState(
-              {},
-              document.title,
-              `/assessment?id=${response.data._id}`
-            );
+            } catch (e) { console.error('Error updating known assessment IDs:', e); }
+            window.history.replaceState({}, document.title, `/assessment?id=${response.data._id}`);
           }
         } catch (error) {
           console.error('Error creating temporary assessment:', error);
@@ -172,15 +135,11 @@ const PainAssessment = () => {
           setIsLoading(false);
         }
       };
-
       createTemporaryAssessment();
     } else {
-      // Use existing assessment ID
       const assessmentId = idFromQuery || idFromState || idFromStorage;
       console.log('Using assessment ID:', assessmentId);
       localStorage.setItem('assessmentId', assessmentId);
-
-      // Also add to known assessment IDs registry for user dashboard display
       try {
         const knownAssessmentIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
         if (assessmentId && !knownAssessmentIds.includes(assessmentId)) {
@@ -188,11 +147,7 @@ const PainAssessment = () => {
           localStorage.setItem('knownAssessmentIds', JSON.stringify(knownAssessmentIds));
           console.log('Added existing assessment to known IDs registry:', assessmentId);
         }
-      } catch (e) {
-        console.error('Error updating known assessment IDs:', e);
-      }
-
-      // Fetch assessment data to get user info
+      } catch (e) { console.error('Error updating known assessment IDs:', e); }
       const fetchAssessmentData = async () => {
         try {
           const response = await api.get(`/assessment/${assessmentId}`);
@@ -201,243 +156,110 @@ const PainAssessment = () => {
             localStorage.setItem('userEmail', response.data.userInfo.email);
             console.log('User info updated from assessment data');
           }
-        } catch (error) {
-          console.error('Error fetching assessment data:', error);
-        }
+        } catch (error) { console.error('Error fetching assessment data:', error); }
       };
-
       fetchAssessmentData();
     }
 
-    // Add global error handler for THREE.js errors
     const handleError = (event) => {
       const errorMsg = event.error?.message || event.message || '';
-
-      // Check for specific BugReportIcon error
       if (errorMsg.includes('BugReportIcon is not defined')) {
         console.error('BugReportIcon error detected - this is a component import issue');
-        // We can handle this silently - the icon will be missing but functionality can continue
         return;
       }
-
-      // Check for THREE.js related errors
-      if (errorMsg.includes('primaries') ||
-          errorMsg.includes('three') ||
-          errorMsg.includes('THREE') ||
-          errorMsg.includes('WebGL')) {
+      if (errorMsg.includes('primaries') || errorMsg.includes('three') || errorMsg.includes('THREE') || errorMsg.includes('WebGL')) {
         handleThreeJsError(event.error || new Error(errorMsg));
       }
     };
-
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleError);
-
     return () => {
-    window.removeEventListener('error', handleError);
-    window.removeEventListener('unhandledrejection', handleError);
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleError);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]); // Removed window.location.search from dependency array
+  }, [location]);
 
   const handlePainDataChange = (data) => {
     console.log('Pain data changed:', data);
     setPainData(data);
     setError('');
-    // Only show success if we have valid pain points with non-zero pain levels
     const hasValidPainPoints = Object.values(data || {}).some(painLevel => painLevel > 0);
     setShowSuccess(hasValidPainPoints);
   };
 
-  // Toggle debug mode
-  const toggleDebugMode = () => {
-    setDebugMode(prevMode => !prevMode);
-  };
+  const toggleDebugMode = () => setDebugMode(prevMode => !prevMode);
 
   const handleSubmit = async () => {
-    // Check if we have any pain data and at least one point with pain level > 0
     const hasValidPainPoints = painData && Object.values(painData).some(painLevel => painLevel > 0);
-
     if (!hasValidPainPoints) {
       setError('Please mark at least one pain point with a pain level before proceeding');
       return;
     }
-
     try {
       setIsLoading(true);
       setError('');
-
-      // const userInfo = { // Removed unused variable
-      //   name: localStorage.getItem('userName'),
-      //   email: localStorage.getItem('userEmail')
-      // };
       const assessmentId = localStorage.getItem('assessmentId');
-
       if (!assessmentId) {
         setError('No assessment ID found. Please try starting again with a new assessment.');
         setIsLoading(false);
         return;
       }
-
       console.log('Submitting assessment with ID:', assessmentId);
-
-      // Prepare assessment data
       const assessmentData = {
-        userId: assessmentId,
+        userId: assessmentId, // This might be overwritten by backend if linked
         painLevels: painData,
-        painDescription: painDescription, // Add description
+        painDescription: painDescription,
         timestamp: new Date().toISOString()
       };
-
       console.log('Submitting assessment data:', assessmentData);
-
-      // Post the assessment data
       try {
-        // Add timestamp to assessment data if not already present
-        if (!assessmentData.timestamp) {
-          assessmentData.timestamp = new Date().toISOString();
+        const token = localStorage.getItem('token');
+        if (token && localStorage.getItem('userId')) {
+          await api.put(`/assessment/${assessmentId}/link-user`, { userId: localStorage.getItem('userId') });
+          console.log('Linked assessment to authenticated user account');
         }
-
-        console.log('Saving pain assessment with data:', JSON.stringify(assessmentData));
-
-        // Now that we definitely have a timestamp, create or update a user link for this assessment
-        try {
-          const token = localStorage.getItem('token');
-          if (token) {
-            // If user is authenticated, link this assessment to their account
-            await api.put(`/assessment/${assessmentId}/link-user`, {
-              userId: api.defaults.headers.common['x-auth-token'] ? 'user-from-token' : localStorage.getItem('userId')
-            });
-            console.log('Linked assessment to authenticated user account');
-          }
-        } catch (linkError) {
-          console.error('Error linking assessment to user account:', linkError);
-          // Continue anyway - this isn't critical
-        }
-
         const response = await api.post('/assessment/pain-assessment', assessmentData);
         console.log('Assessment saved successfully:', response.data);
-
-        // Ensure assessment ID is stored in localStorage before navigation
-        localStorage.setItem('assessmentId', assessmentId);
-
-        // Store the assessment data in localStorage for user dashboard access
+        localStorage.setItem('assessmentId', assessmentId); // Re-affirm ID
         try {
-          // Get the realAssessments array from localStorage or create empty array
           const realAssessments = JSON.parse(localStorage.getItem('realAssessments') || '[]');
-
-          // Add the current assessment data - use the server response data which is more complete
-          const assessmentToSave = {
-            ...response.data, // Take all fields from server response
-            _id: assessmentId,
-            timestamp: assessmentData.timestamp,
-            painLevels: painData,
-            userInfo: {
-              name: localStorage.getItem('userName') || 'User',
-              email: localStorage.getItem('userEmail') || 'user@example.com'
-            },
-            isRealData: true, // Flag to identify real user assessment data
-            isTempData: false // Explicitly mark as not temporary
-          };
-
-          // Remove any old versions of this assessment
+          const assessmentToSave = { ...response.data, _id: assessmentId, timestamp: assessmentData.timestamp, painLevels: painData, userInfo: { name: localStorage.getItem('userName') || 'User', email: localStorage.getItem('userEmail') || 'user@example.com' }, isRealData: true, isTempData: false };
           const filteredAssessments = realAssessments.filter(a => a._id !== assessmentId);
-
-          // Add the new assessment
           filteredAssessments.push(assessmentToSave);
-
-          // Save back to localStorage
           localStorage.setItem('realAssessments', JSON.stringify(filteredAssessments));
           console.log('Saved assessment to localStorage for dashboard access:', assessmentId);
-
-          // Also update knownAssessmentIds to include this ID
-          try {
-            const knownIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
-            if (!knownIds.includes(assessmentId)) {
-              knownIds.push(assessmentId);
-              localStorage.setItem('knownAssessmentIds', JSON.stringify(knownIds));
-              console.log('Updated knownAssessmentIds to include:', assessmentId);
-            }
-          } catch (e) {
-            console.error('Error updating knownAssessmentIds:', e);
+          const knownIds = JSON.parse(localStorage.getItem('knownAssessmentIds') || '[]');
+          if (!knownIds.includes(assessmentId)) {
+            knownIds.push(assessmentId);
+            localStorage.setItem('knownAssessmentIds', JSON.stringify(knownIds));
+            console.log('Updated knownAssessmentIds to include:', assessmentId);
           }
-        } catch (e) {
-          console.error('Error saving assessment to localStorage:', e);
-        }
-
-        // Immediate navigate to dashboard, regardless of success
+        } catch (e) { console.error('Error saving assessment to localStorage:', e); }
         setIsLoading(false);
         console.log('Navigating to dashboard...');
-
-        // Before redirecting, ensure refreshed assessments will be shown
-        try {
-          // Make a direct server request to link this assessment with the user
-          if (localStorage.getItem('token') && localStorage.getItem('userId')) {
-            await api.put(`/assessment/${assessmentId}/link-user`, {
-              userId: localStorage.getItem('userId')
-            });
-            console.log('Successfully linked assessment to user before redirecting');
-          }
-        } catch (linkErr) {
-          console.error('Error linking assessment before redirect:', linkErr);
-        }
-
-        // Force a full page redirect instead of client-side navigation
         window.location.href = `/dashboard?id=${assessmentId}`;
       } catch (apiError) {
         console.error('API Error:', apiError);
-        const errorMessage = apiError.response?.data?.message ||
-                           apiError.response?.data?.error ||
-                           'Failed to save pain assessment. Please try again.';
+        const errorMessage = apiError.response?.data?.message || apiError.response?.data?.error || 'Failed to save pain assessment. Please try again.';
         setError(`API Error: ${errorMessage}`);
         setIsLoading(false);
-
-        // Ensure assessment ID is stored in localStorage before navigation
-        localStorage.setItem('assessmentId', assessmentId);
-
-        // Even with error, save the assessment data in localStorage for user dashboard access
+        localStorage.setItem('assessmentId', assessmentId); // Re-affirm ID even on error
         try {
-          // Get the realAssessments array from localStorage or create empty array
           const realAssessments = JSON.parse(localStorage.getItem('realAssessments') || '[]');
-
-          // Add the current assessment data
-          const assessmentToSave = {
-            _id: assessmentId,
-            timestamp: new Date().toISOString(), // Fix: use current timestamp directly
-            painLevels: painData,
-            userInfo: {
-              name: localStorage.getItem('userName') || 'User',
-              email: localStorage.getItem('userEmail') || 'user@example.com'
-            },
-            isRealData: true, // Flag to identify real user assessment data
-            hasError: true // Flag to indicate there was an error saving
-          };
-
-          // Only add if not already present
+          const assessmentToSave = { _id: assessmentId, timestamp: new Date().toISOString(), painLevels: painData, userInfo: { name: localStorage.getItem('userName') || 'User', email: localStorage.getItem('userEmail') || 'user@example.com' }, isRealData: true, hasError: true };
           if (!realAssessments.some(a => a._id === assessmentId)) {
             realAssessments.push(assessmentToSave);
-
-            // Save back to localStorage
             localStorage.setItem('realAssessments', JSON.stringify(realAssessments));
             console.log('Saved error assessment to localStorage for dashboard access:', assessmentId);
           }
-        } catch (e) {
-          console.error('Error saving assessment to localStorage:', e);
-        }
-
-        // Before redirecting, try one more time to ensure this assessment is linked with user
+        } catch (e) { console.error('Error saving assessment to localStorage:', e); }
         try {
-          // Make a direct server request to link this assessment with the user
           if (localStorage.getItem('token') && localStorage.getItem('userId')) {
-            await api.put(`/assessment/${assessmentId}/link-user`, {
-              userId: localStorage.getItem('userId')
-            });
+            await api.put(`/assessment/${assessmentId}/link-user`, { userId: localStorage.getItem('userId') });
             console.log('Successfully linked assessment to user before redirecting (error path)');
           }
-        } catch (linkErr) {
-          console.error('Error linking assessment before redirect (error path):', linkErr);
-        }
-
-        // Even with error, try navigation to dashboard
+        } catch (linkErr) { console.error('Error linking assessment before redirect (error path):', linkErr); }
         console.log('Error occurred but still navigating to dashboard...');
         window.location.href = `/dashboard?id=${assessmentId}`;
       }
@@ -449,334 +271,306 @@ const PainAssessment = () => {
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      bgcolor: 'grey.50',
-      py: 2,
-      pb: 4, // Added bottom padding
-      overflow: 'auto', // Ensure scrolling is available
-      backgroundImage: 'linear-gradient(to bottom right, #f7fafc, #edf2f7)'
-    }}>
-      <Container maxWidth="lg">
-        <StyledPaper elevation={2} sx={{ p: 2 }}>
-          <Box sx={{ mb: 2 }}>
-            <Stepper activeStep={1} alternativeLabel>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel sx={{ '& .MuiStepLabel-label': { fontSize: '0.9rem' } }}>
-                    {label}
-                  </StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-          </Box>
-
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 2
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography
-                variant="h4"
-                align="center"
-                sx={{
-                  fontWeight: 700,
-                  background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}
-              >
-                Pain Assessment
-              </Typography>
-              <Tooltip title="Click on the highlighted points on the model to mark your pain levels.">
-                <IconButton size="small" sx={{ ml: 1 }}>
-                  <Help fontSize="small" />
-                </IconButton>
-              </Tooltip>
+    <React.Fragment>
+      {/* Container adjusted to work within Layout */}
+      <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', py: 4 }}>
+          {/* Main Paper adjusted for dark theme */}
+          <Paper elevation={6} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(20, 25, 35, 0.8)', backdropFilter: 'blur(8px)', color: 'white' }}>
+            {/* Stepper styled for dark theme */}
+            <Box sx={{ mb: 3 }}>
+              <Stepper activeStep={1} alternativeLabel sx={{ '& .MuiStepLabel-label': { color: 'rgba(255, 255, 255, 0.7)', '&.Mui-active': { color: 'white', fontWeight: 'bold' }, '&.Mui-completed': { color: '#bb86fc' } }, '& .MuiStepIcon-root': { color: 'rgba(255, 255, 255, 0.3)', '&.Mui-active': { color: '#bb86fc' }, '&.Mui-completed': { color: '#bb86fc' } } }}>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>
+                      {label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Tooltip title="Toggle debug mode">
-                <IconButton
-                  onClick={toggleDebugMode}
-                  color={debugMode ? "error" : "default"}
-                  sx={{ mr: 1 }}
-                >
-                  <BugReportIcon />
-                </IconButton>
-              </Tooltip>
+            {/* Header section */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}> {/* Title color handled by Paper */}
+                  Pain Assessment
+                </Typography>
+                <Tooltip title="Click on the highlighted points on the model to mark your pain levels.">
+                  <IconButton size="small" sx={{ ml: 1, color: 'rgba(255, 255, 255, 0.7)' }}> {/* Icon color */}
+                    <Help fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
 
-              <Tooltip title="Select visualization type">
-                <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Tooltip title="Toggle debug mode">
+                  <IconButton
+                    onClick={toggleDebugMode}
+                    sx={{ mr: 1, color: debugMode ? '#f48fb1' : 'rgba(255, 255, 255, 0.7)' }} // Error color for debug on
+                  >
+                    <BugReportIcon />
+                  </IconButton>
+                </Tooltip>
+
+                {/* RadioGroup styled for dark theme */}
+                <Tooltip title="Select visualization type">
                   <RadioGroup
                     row
                     aria-label="visualization-type"
                     name="visualization-type"
                     value={modelType}
                     onChange={(e) => setModelType(e.target.value)}
+                    sx={{ '& .MuiFormControlLabel-label': { color: 'rgba(255, 255, 255, 0.7)' }, '& .MuiRadio-root': { color: 'rgba(255, 255, 255, 0.7)', '&.Mui-checked': { color: '#bb86fc' } } }}
                   >
                     <FormControlLabel value="3d" control={<Radio size="small" />} label="3D" />
                     <FormControlLabel value="simple" control={<Radio size="small" />} label="Simple" />
                   </RadioGroup>
-                </Box>
-              </Tooltip>
-            </Box>
-          </Box>
-
-          {error && (
-            <Fade in={true}>
-              <Alert
-                severity="error"
-                sx={{
-                  mb: 2,
-                  borderRadius: 1,
-                  '& .MuiAlert-message': { py: 0 }
-                }}
-              >
-                {error}
-              </Alert>
-            </Fade>
-          )}
-
-          {showSuccess && !error && (
-            <Fade in={true}>
-              <Alert
-                icon={<CheckCircleOutline fontSize="small" />}
-                severity="success"
-                sx={{
-                  mb: 2,
-                  borderRadius: 1,
-                  '& .MuiAlert-message': { py: 0 }
-                }}
-              >
-                Pain levels have been marked. You can proceed to submit your assessment.
-              </Alert>
-            </Fade>
-          )}
-
-          {/* Container for Model and Description */}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-
-            {/* Model Area */}
-            <Box sx={{
-              width: '100%',
-              maxWidth: '1200px', // Keep max width if desired
-              mx: 'auto',
-              height: { xs: '80vh', sm: '90vh', md: '95vh' }, // Height set here
-              position: 'relative', // Keep relative for inner absolute positioning
-              display: 'flex', // Use flex to make Paper grow
-              flexDirection: 'column',
-              borderRadius: 2,
-              overflow: 'hidden', // Keep overflow hidden
-              mb: 3 // Add margin below model area
-            }}>
-              {/* Instructional Text */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, color: 'text.secondary' }}>
-                <TouchAppIcon sx={{ mr: 0.5, fontSize: '1.1rem' }} />
-                <Typography variant="caption">
-                  Click, hold, and drag to rotate the model. Use scroll to zoom.
-                </Typography>
+                </Tooltip>
               </Box>
+            </Box>
 
-              <Paper
-                elevation={3}
-                sx={{
-                  flexGrow: 1, // Make Paper fill the parent Box height
-                  position: 'relative', // Position context for buttons
-                  p: 0,
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  width: '100%',
-                  overflow: 'hidden', // Keep overflow hidden
-                  display: 'flex', // Keep display flex
-                  flexDirection: 'column',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-                }}
-              >
-                {/* Camera Control Buttons - Inside Paper */}
-                <Box sx={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  <Tooltip title="View Front">
-                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewFront()}>
-                      <ArrowDownward fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="View Back">
-                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewBack()}>
-                      <ArrowUpward fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="View Left">
-                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewLeft()}>
-                      <ArrowBackIosNew fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="View Right">
-                    <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.7)', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', borderRadius: 1 } }} onClick={() => modelRef.current?.setViewRight()}>
-                      <ArrowForwardIos fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
+            {/* Alerts styled for dark theme */}
+            {error && (
+              <Fade in={true}>
+                <Alert severity="error" variant="filled" sx={{ mb: 2, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}>
+                  {error}
+                </Alert>
+              </Fade>
+            )}
+
+            {showSuccess && !error && (
+              <Fade in={true}>
+                <Alert icon={<CheckCircleOutline fontSize="small" />} severity="success" variant="filled" sx={{ mb: 2, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}>
+                  Pain levels have been marked. You can proceed to submit your assessment.
+                </Alert>
+              </Fade>
+            )}
+            {/* Corrected: Removed extra closing parentheses */}
+
+            {/* Use Grid for Model and Description layout */}
+            {/* Ensure the Grid container itself can grow and items stretch */}
+            <Grid container spacing={3} sx={{ flexGrow: 1, mt: 1, alignItems: 'stretch' }}>
+
+              {/* Model Area in Grid Item */}
+              {/* Removed minHeight, rely on flexbox */}
+              <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
+                {/* Instructional Text styled */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  <TouchAppIcon sx={{ mr: 0.5, fontSize: '1.1rem' }} />
+                  <Typography variant="caption">
+                    Click, hold, and drag to rotate the model. Use scroll to zoom.
+                  </Typography>
                 </Box>
-                {modelType === '3d' ? (
-                  <ErrorBoundary
-                    onError={handleThreeJsError}
-                    key={modelType} // Force remount when model type changes
+
+                {/* Model container Paper styled */}
+                <Paper
+                  elevation={4}
+                  sx={{
+                    flexGrow: 1, // Allow paper to grow vertically
+                    position: 'relative',
+                    p: 0,
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'rgba(255, 255, 255, 0.23)',
+                    width: '100%',
+                      height: '100%', // Make paper fill the grid item height
+                      overflow: 'hidden',
+                      display: 'flex', // Use flex to make canvas fill space
+                      flexDirection: 'column',
+                      backgroundColor: 'rgba(10, 15, 25, 0.7)',
+                      boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)'
+                    }}
                   >
-                    <BodyModel3D
-                      ref={modelRef} // Assign the ref
+                    {/* Camera Control Buttons styled */}
+                  <Box sx={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Tooltip title="View Front">
+                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewFront()}>
+                        <ArrowDownward fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="View Back">
+                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewBack()}>
+                        <ArrowUpward fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="View Left">
+                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewLeft()}>
+                        <ArrowBackIosNew fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="View Right">
+                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewRight()}>
+                        <ArrowForwardIos fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  {modelType === '3d' ? (
+                    <ErrorBoundary
+                      onError={handleThreeJsError}
+                      key={modelType}
+                    >
+                      <BodyModel3D
+                        ref={modelRef}
+                        onChange={handlePainDataChange}
+                        disabled={isLoading}
+                        debugMode={debugMode}
+                        // Add style to ensure it fills container
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    </ErrorBoundary>
+                  ) : (
+                    <SimpleBodyModel
                       onChange={handlePainDataChange}
                       disabled={isLoading}
-                      debugMode={debugMode}
+                      // Add style to ensure it fills container
+                      style={{ width: '100%', height: '100%' }}
                     />
-                  </ErrorBoundary>
-                ) : (
-                  <SimpleBodyModel
-                    onChange={handlePainDataChange}
-                    disabled={isLoading}
-                  />
-                )}
-              </Paper>
-            </Box>
+                  )}
+                </Paper> {/* Close Model Paper */}
+            </Grid> {/* Close Model Grid Item */}
 
-            {/* Pain Description Input - Using TextField */}
-            <Box sx={{ mb: 3 }}> {/* Use margin bottom only */}
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Describe Your Pain Experience
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Please describe your pain and how it affects your daily life — including when it started, where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment.
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                variant="outlined" // Use outlined style consistent with MUI
-                label="Pain Description"
-                value={painDescription}
-                onChange={(e) => setPainDescription(e.target.value)}
-                placeholder="Enter details here..."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px', // Adjusted border radius for a less rounded look
-                  },
-                }}
-              />
-            </Box>
-
-            {/* Action Buttons */}
-            <Box sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              mt: 'auto', // Push buttons to the bottom if needed, though description is below now
-              pt: 2,
-              borderTop: 1,
-              borderColor: 'divider'
-            }}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  size="medium"
-                  onClick={() => navigate('/')}
-                  startIcon={<ArrowBack />}
+            {/* Description and Actions in Grid Item */}
+            {/* Ensure this Grid item also uses flex column */}
+            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Pain Description Input styled */}
+              {/* Let description box grow, but not excessively */}
+              <Box sx={{ mb: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  Describe Your Pain Experience
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Please describe your pain and how it affects your daily life — including when it started, where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment.
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={10} // Adjusted rows slightly
+                  variant="filled"
+                  label="Pain Description"
+                  value={painDescription}
+                  onChange={(e) => setPainDescription(e.target.value)}
+                  placeholder="Enter details here..."
                   sx={{
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600
+                    flexGrow: 1, // Allow TextField to grow
+                    '& .MuiFilledInput-root': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      height: '100%', // Make input fill the available space
+                      alignItems: 'flex-start' // Align text to top
+                    },
+                    '& .MuiInputBase-inputMultiline': {
+                      height: '100% !important', // Override default height if needed
+                      overflow: 'auto !important' // Ensure scrollability
+                    },
+                    textarea: { color: 'white' },
+                    label: { color: 'rgba(255, 255, 255, 0.7)' }
                   }}
-                >
-                  Back to Home
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => navigate('/user-dashboard')}
-                  sx={{
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600
-                  }}
-                >
-                  User Dashboard
-                </Button>
+                />
               </Box>
-              <Button
-                variant="contained"
-                size="medium"
-                onClick={handleSubmit}
-                disabled={isLoading || !painData || Object.keys(painData || {}).length === 0}
-                endIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
-                  boxShadow: '0 2px 4px rgba(33, 203, 243, .3)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
-                  },
-                  '&.Mui-disabled': {
-                    background: theme.palette.action.disabledBackground
-                  }
-                }}
-              >
-                Complete Assessment
+
+              {/* Action Buttons styled - Placed at the bottom */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto', pt: 2, borderTop: 1, borderColor: 'rgba(255, 255, 255, 0.23)' }}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  {/* Back button - Styled like HomePage */}
+                  <Button
+                    variant="contained" // Changed to contained
+                    size="medium"
+                    onClick={() => navigate('/')}
+                    startIcon={<ArrowBack />}
+                    sx={{
+                      borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e',
+                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)', transform: 'scale(1.03)', boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)' },
+                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    }}
+                  >
+                    Back to Home
+                  </Button>
+
+                  {/* Dashboard button - Styled like HomePage */}
+                  <Button
+                    variant="contained" // Changed to contained
+                    onClick={() => navigate('/user-dashboard')}
+                    sx={{
+                      borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e',
+                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)', transform: 'scale(1.03)', boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)' },
+                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    }}
+                  >
+                    User Dashboard
+                  </Button>
+                </Box>
+                {/* Complete button - Styled like HomePage (already correct) */}
+                <Button
+                  variant="contained"
+                  size="medium"
+                    onClick={handleSubmit}
+                    disabled={isLoading || !painData || Object.keys(painData || {}).length === 0}
+                    endIcon={isLoading ? <CircularProgress size={16} sx={{ color: '#1a1a2e' }} /> : <ArrowForward />}
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      color: '#1a1a2e',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 1)',
+                        transform: 'scale(1.03)',
+                        boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+                      },
+                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.3)', // Lighter disabled background
+                        color: 'rgba(0, 0, 0, 0.4)'
+                      }
+                    }}
+                  >
+                    Complete Assessment
+                  </Button>
+                </Box>
+              </Grid> {/* Close Description Grid Item */}
+            </Grid> {/* Close main Grid container */}
+          </Paper> {/* Close main Paper */}
+        </Container>
+
+        {/* THREE.js Error Dialog styled */}
+        <Dialog
+          open={showErrorDialog}
+          onClose={() => setShowErrorDialog(false)}
+          aria-labelledby="threejs-error-dialog-title"
+          PaperProps={{ sx: { backgroundColor: '#1f2a3e', color: 'white' } }} // Dark background
+        >
+          <DialogTitle id="threejs-error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold' }}>
+            <Warning color="error" />
+            3D Rendering Issue Detected
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              There was an issue with the 3D model rendering. You have a few options:
+            </DialogContentText>
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(244, 143, 177, 0.1)', color: '#f48fb1', borderRadius: 1, border: '1px solid rgba(244, 143, 177, 0.3)' }}>
+              <Typography variant="body2" fontFamily="monospace" whiteSpace="pre-wrap">
+                {threeJsError ? threeJsError.toString() : 'Unknown THREE.js error'}
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'space-between' }}>
+            <Button onClick={() => setShowErrorDialog(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Dismiss
+            </Button>
+            <Box>
+              <Button onClick={resetThreeJsError} startIcon={<RestartAlt />} variant="contained" sx={{ mr: 1, backgroundColor: '#bb86fc', '&:hover': { backgroundColor: '#a16ae8' } }}>
+                Reset & Try Again
+              </Button>
+              <Button onClick={() => { setModelType('simple'); setShowErrorDialog(false); }} sx={{ color: '#f48fb1' }}>
+                Use Simple Model
               </Button>
             </Box>
-          </Box> {/* Close Container for Model and Description */}
-        </StyledPaper>
-      </Container>
-
-      {/* THREE.js Error Dialog */}
-      <Dialog
-        open={showErrorDialog}
-        onClose={() => setShowErrorDialog(false)}
-        aria-labelledby="threejs-error-dialog-title"
-      >
-        <DialogTitle id="threejs-error-dialog-title" sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <Warning color="error" />
-          3D Rendering Issue Detected
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            There was an issue with the 3D model rendering. You have a few options:
-          </DialogContentText>
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
-            <Typography variant="body2" fontFamily="monospace" whiteSpace="pre-wrap">
-              {threeJsError ? threeJsError.toString() : 'Unknown THREE.js error'}
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'space-between' }}>
-          <Button onClick={() => setShowErrorDialog(false)} color="primary">
-            Dismiss
-          </Button>
-          <Box>
-            <Button onClick={resetThreeJsError} startIcon={<RestartAlt />} variant="contained" color="primary" sx={{ mr: 1 }}>
-              Reset & Try Again
-            </Button>
-            <Button onClick={() => {
-              setModelType('simple');
-              setShowErrorDialog(false);
-            }} color="warning">
-              Use Simple Model
-            </Button>
-          </Box>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          </DialogActions>
+        </Dialog>
+    </React.Fragment> // Close the fragment
   );
 };
 

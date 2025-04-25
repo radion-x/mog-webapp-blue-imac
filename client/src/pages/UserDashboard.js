@@ -577,19 +577,22 @@ const UserDashboard = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1" gutterBottom>
+    // Container adjusted to work within Layout
+    <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', py: 4 }}>
+      {/* Main Paper adjusted for dark theme */}
+      <Paper elevation={6} sx={{ p: 3, borderRadius: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(20, 25, 35, 0.8)', backdropFilter: 'blur(8px)', color: 'white' }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}> {/* Bolder title */}
             User Dashboard
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            {/* Buttons styled for dark theme */}
             <Button
               variant="outlined"
-              color="primary"
+              // color="primary" // Use sx for specific colors
+              sx={{ color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
               onClick={() => {
-                // Force refresh assessments for the user
-                setLoading(true); // Indicate loading on manual refresh
+                setLoading(true);
                 api.get('/assessment/user') // Corrected endpoint
                   .then(response => {
                     if (Array.isArray(response.data)) {
@@ -617,7 +620,8 @@ const UserDashboard = () => {
             {user?.isAdmin && (
               <Button
                 variant="contained"
-                color="primary"
+                // color="primary" // Use sx
+                sx={{ backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}
                 onClick={() => navigate('/admin-dashboard')}
               >
                 Go to Admin Dashboard
@@ -625,7 +629,8 @@ const UserDashboard = () => {
             )}
             <Button
               variant="outlined"
-              color="error"
+              // color="error" // Use sx
+              sx={{ color: '#f48fb1', borderColor: 'rgba(244, 143, 177, 0.5)', '&:hover': { borderColor: '#f48fb1', backgroundColor: 'rgba(244, 143, 177, 0.1)' } }}
               onClick={logout}
             >
               Logout
@@ -640,27 +645,44 @@ const UserDashboard = () => {
           </Alert>
         )}
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        {/* Tabs styled for dark theme */}
+        <Box sx={{ borderBottom: 1, borderColor: 'rgba(255, 255, 255, 0.23)' }}>
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
             aria-label="dashboard tabs"
             variant="fullWidth"
+            textColor="inherit" // Use inherit to allow sx styling
+            indicatorColor="primary" // Or secondary, depending on theme preference
+            sx={{
+              '& .MuiTab-root': { // Style individual tabs
+                color: 'rgba(255, 255, 255, 0.7)',
+                '&.Mui-selected': {
+                  color: 'white', // Color for selected tab
+                },
+              },
+              '& .MuiTabs-indicator': { // Style the indicator line
+                 backgroundColor: '#bb86fc' // Example: Purple indicator
+              }
+            }}
           >
             <Tab
               label="Appointments"
               icon={<EventIcon />}
               iconPosition="start"
+              sx={{ textTransform: 'none', fontWeight: 600 }} // Style tab text
             />
             <Tab
               label="Documents"
               icon={<DocumentIcon />}
               iconPosition="start"
+              sx={{ textTransform: 'none', fontWeight: 600 }} // Style tab text
             />
             <Tab
               label="Assessments"
               icon={<AssessmentIcon />}
               iconPosition="start"
+              sx={{ textTransform: 'none', fontWeight: 600 }} // Style tab text
             />
           </Tabs>
         </Box>
@@ -671,27 +693,30 @@ const UserDashboard = () => {
             <Typography variant="h6">
               Your Appointments
             </Typography>
+            {/* Button styled like HomePage */}
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={handleAppointmentDialogOpen}
+              sx={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e', '&:hover': { backgroundColor: 'white' } }}
             >
               Book Appointment
             </Button>
           </Box>
 
-          {loading && appointments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : appointments.length === 0 ? (
-            <Alert severity="info">
+          {loading && appointments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto', color: 'white'}} /> : appointments.length === 0 ? (
+            <Alert severity="info" variant="outlined" sx={{ borderColor: 'info.light', color: 'info.light', '& .MuiAlert-icon': { color: 'info.light' } }}> {/* Outlined Alert */}
               You don't have any appointments yet. Book your first appointment now.
             </Alert>
           ) : (
             <Grid container spacing={3}>
               {appointments.map((appointment) => (
                 <Grid item xs={12} md={6} key={appointment._id}>
-                  <Card elevation={2}>
-                    <CardContent>
+                  {/* Card styled for dark theme */}
+                  <Card elevation={4} sx={{ backgroundColor: 'rgba(30, 40, 55, 0.9)', color: 'white', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <HospitalIcon color="primary" sx={{ mr: 1 }} />
+                        <HospitalIcon sx={{ mr: 1, color: '#bb86fc' }} /> {/* Icon color */}
                         <Typography variant="h6" component="div">
                           {appointment.appointmentType === 'surgeon' ? 'Surgeon Appointment' :
                             appointment.appointmentType === 'allied_health' ? 'Allied Health Appointment' :
@@ -700,63 +725,70 @@ const UserDashboard = () => {
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <PersonIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body1" color="text.secondary">
+                        <PersonIcon fontSize="small" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Provider: {appointment.provider}
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body1" color="text.secondary">
+                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Date: {formatDate(appointment.date)}
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <TimeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body1" color="text.secondary">
+                        <TimeIcon fontSize="small" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Time: {appointment.time}
                         </Typography>
                       </Box>
 
                       {appointment.notes && (
-                        <Typography variant="body2" sx={{ mt: 2 }}>
+                        <Typography variant="body2" sx={{ mt: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
                           Notes: {appointment.notes}
                         </Typography>
                       )}
 
+                      {/* Chip styling adjusted */}
                       <Chip
                         label={appointment.status ? appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1) : 'Unknown'}
-                        color={
-                          appointment.status === 'scheduled' ? 'primary' :
-                            appointment.status === 'completed' ? 'success' :
-                              appointment.status === 'cancelled' ? 'error' : 'default'
-                        }
                         size="small"
-                        sx={{ mt: 2 }}
+                        sx={{
+                          mt: 2,
+                          backgroundColor:
+                            appointment.status === 'scheduled' ? 'primary.dark' :
+                            appointment.status === 'completed' ? 'success.dark' :
+                            appointment.status === 'cancelled' ? 'error.dark' : 'grey.700',
+                          color: 'white'
+                        }}
                       />
                     </CardContent>
-                    <CardActions>
+                    <CardActions sx={{ justifyContent: 'flex-end' }}> {/* Align actions */}
+                      {/* Buttons styled */}
                       <Button
                         size="small"
                         startIcon={<EditIcon />}
                         onClick={() => {/* Handle edit */ }}
+                        sx={{ color: '#bb86fc' }}
                       >
                         Edit
                       </Button>
                       <Button
                         size="small"
-                        color="error"
+                        // color="error" // Use sx
                         startIcon={<DeleteIcon />}
                         onClick={() => {/* Handle delete */ }}
+                        sx={{ color: '#f48fb1' }}
                       >
                         Cancel
                       </Button>
                       {appointment.status === 'completed' && (
                         <Button
                           size="small"
-                          color="secondary"
+                          // color="secondary" // Use sx
+                          sx={{ color: '#03dac6' }}
                           onClick={() => navigate('/assessment')}
                         >
                           New Assessment
@@ -776,27 +808,30 @@ const UserDashboard = () => {
             <Typography variant="h6">
               Your Medical Documents
             </Typography>
+            {/* Button styled like HomePage */}
             <Button
               variant="contained"
               startIcon={<UploadIcon />}
               onClick={handleDocumentDialogOpen}
+              sx={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e', '&:hover': { backgroundColor: 'white' } }}
             >
               Upload Document
             </Button>
           </Box>
 
-          {loading && documents.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : documents.length === 0 ? (
-            <Alert severity="info">
+          {loading && documents.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto', color: 'white'}} /> : documents.length === 0 ? (
+            <Alert severity="info" variant="outlined" sx={{ borderColor: 'info.light', color: 'info.light', '& .MuiAlert-icon': { color: 'info.light' } }}> {/* Outlined Alert */}
               You don't have any documents yet. Upload your first document now.
             </Alert>
           ) : (
             <Grid container spacing={3}>
               {documents.map((document) => (
                 <Grid item xs={12} md={6} key={document._id}>
-                  <Card elevation={2}>
-                    <CardContent>
+                  {/* Card styled for dark theme */}
+                  <Card elevation={4} sx={{ backgroundColor: 'rgba(30, 40, 55, 0.9)', color: 'white', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <DocumentIcon color="primary" sx={{ mr: 1 }} />
+                        <DocumentIcon sx={{ mr: 1, color: '#bb86fc' }} /> {/* Icon color */}
                         <Typography variant="h6" component="div">
                           {document.documentType ? document.documentType.split('_').map(word =>
                             word.charAt(0).toUpperCase() + word.slice(1)
@@ -804,26 +839,26 @@ const UserDashboard = () => {
                         </Typography>
                       </Box>
 
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }} gutterBottom>
                         {document.originalName || 'No filename'}
                       </Typography>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2" color="text.secondary">
+                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Document Date: {formatDate(document.documentDate)}
                         </Typography>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2" color="text.secondary">
+                        <DateRangeIcon fontSize="small" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Uploaded: {formatDate(document.uploadDate)}
                         </Typography>
                       </Box>
 
                       {document.description && (
-                        <Typography variant="body2" sx={{ mt: 2 }}>
+                        <Typography variant="body2" sx={{ mt: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
                           {document.description}
                         </Typography>
                       )}
@@ -831,16 +866,18 @@ const UserDashboard = () => {
                       {document.tags && document.tags.length > 0 && (
                         <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                           {document.tags.map((tag, index) => (
-                            <Chip key={index} label={tag} size="small" />
+                            <Chip key={index} label={tag} size="small" sx={{ backgroundColor: 'grey.700', color: 'white' }} /> // Chip styling
                           ))}
                         </Box>
                       )}
                     </CardContent>
-                    <CardActions>
+                    <CardActions sx={{ justifyContent: 'flex-end' }}> {/* Align actions */}
+                      {/* Buttons styled */}
                       <Button
                         size="small"
                         startIcon={<DownloadIcon />}
                         onClick={() => handleDownloadDocument(document._id)}
+                        sx={{ color: '#bb86fc' }}
                       >
                         Download
                       </Button>
@@ -848,14 +885,16 @@ const UserDashboard = () => {
                         size="small"
                         startIcon={<EditIcon />}
                         onClick={() => {/* Handle edit */ }}
+                        sx={{ color: '#bb86fc' }}
                       >
                         Edit
                       </Button>
                       <Button
                         size="small"
-                        color="error"
+                        // color="error" // Use sx
                         startIcon={<DeleteIcon />}
                         onClick={() => {/* Handle delete */ }}
+                        sx={{ color: '#f48fb1' }}
                       >
                         Delete
                       </Button>
@@ -874,10 +913,12 @@ const UserDashboard = () => {
               Your Pain Assessments
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Button styled like HomePage */}
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleStartNewAssessment}
+                sx={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e', '&:hover': { backgroundColor: 'white' } }}
               >
                 New Assessment
               </Button>
@@ -885,14 +926,16 @@ const UserDashboard = () => {
           </Box>
 
           <Box sx={{ mb: 3 }}>
-             {loading && assessments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto'}} /> : assessments.length === 0 ? (
+             {loading && assessments.length === 0 ? <CircularProgress sx={{display: 'block', margin: 'auto', color: 'white'}} /> : assessments.length === 0 ? (
               <>
-                <Alert severity="info" sx={{ mb: 3 }}>
+                <Alert severity="info" variant="outlined" sx={{ mb: 3, borderColor: 'info.light', color: 'info.light', '& .MuiAlert-icon': { color: 'info.light' } }}> {/* Outlined Alert */}
                   You don't have any assessments yet. Start your first assessment now.
                 </Alert>
+                {/* Debug button styled */}
                 <Button
-                  variant="contained"
-                  color="primary"
+                  variant="outlined"
+                  // color="primary" // Use sx
+                  sx={{ mb: 2, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
                   onClick={async () => {
                     try {
                       // Force a direct check of user's assessments
@@ -907,30 +950,31 @@ const UserDashboard = () => {
                       console.error('Error checking assessments directly:', e);
                     }
                   }}
-                  sx={{ mb: 2 }}
                 >
                   Debug: Check for Assessments
                 </Button>
-                <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', mt: 2 }}>
+                {/* Paper styled for dark theme */}
+                <Paper sx={{ p: 3, borderRadius: 2, bgcolor: 'rgba(30, 40, 55, 0.9)', mt: 2, color: 'white' }}>
                   <Typography variant="h6" gutterBottom>
                     Getting Started with Assessments
                   </Typography>
-                  <Typography variant="body1" paragraph>
+                  <Typography variant="body1" paragraph sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                     Complete a pain assessment to get personalized treatment recommendations.
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                    {/* Button styled like HomePage */}
                     <Button
                       variant="contained"
-                      color="primary"
+                      // color="primary" // Use sx
                       onClick={handleStartNewAssessment}
                       startIcon={<AssessmentIcon />}
                       size="large"
-                      sx={{ py: 1.5, px: 3 }}
+                      sx={{ py: 1.5, px: 3, backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e', '&:hover': { backgroundColor: 'white' } }}
                     >
                       Start Your First Assessment
                     </Button>
 
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                    <Typography variant="caption" sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
                       If no assessments appear above, click the "Refresh Data" button in the top right.
                     </Typography>
                   </Box>
@@ -938,7 +982,7 @@ const UserDashboard = () => {
               </>
             ) : (
               <>
-                <Alert severity="success" sx={{ mb: 3 }}>
+                <Alert severity="success" variant="outlined" sx={{ mb: 3, borderColor: 'success.light', color: 'success.light', '& .MuiAlert-icon': { color: 'success.light' } }}> {/* Outlined Alert */}
                   <Typography variant="body1" fontWeight="bold">
                     {assessments.length} assessment{assessments.length !== 1 ? 's' : ''} found
                   </Typography>
@@ -947,47 +991,47 @@ const UserDashboard = () => {
                   </Typography>
                 </Alert>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                     Showing your pain assessments from the database.
                   </Typography>
-                  {/* Removed manual refresh button here as auto-refresh is active */}
                 </Box>
               </>
             )}
           </Box>
 
           {assessments.length > 0 && (
-            <List>
+            <List sx={{ color: 'white' }}> {/* Ensure list text is white */}
               {assessments.map((assessment) => (
-                <Paper key={assessment._id} elevation={2} sx={{ mb: 2 }}>
+                <Paper key={assessment._id} elevation={2} sx={{ mb: 2, backgroundColor: 'rgba(30, 40, 55, 0.9)' }}> {/* Darker paper for list items */}
                   <ListItem
                     secondaryAction={
                       <Box sx={{ display: 'flex' }}>
                         <Tooltip title="View Assessment Results">
-                          <IconButton edge="end" onClick={() => handleViewAssessment(assessment._id)}>
-                            <AssessmentIcon color="primary" />
+                          {/* Icon button color */}
+                          <IconButton edge="end" onClick={() => handleViewAssessment(assessment._id)} sx={{ color: '#bb86fc' }}>
+                            <AssessmentIcon />
                           </IconButton>
                         </Tooltip>
                       </Box>
                     }
                   >
-                    <ListItemIcon>
+                    <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }}> {/* Icon color */}
                       <EventIcon />
                     </ListItemIcon>
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography>
+                          <Typography sx={{ color: 'white' }}> {/* Ensure primary text is white */}
                             Assessment from {formatDate(assessment.timestamp || assessment.createdAt)}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                          <Typography variant="caption" sx={{ ml: 2, color: 'rgba(255, 255, 255, 0.7)' }}> {/* Secondary text color */}
                             ID: {assessment._id ? (typeof assessment._id === 'string' ? assessment._id.substring(0, 8) : String(assessment._id).substring(0, 8)) : 'Unknown'}
                           </Typography>
                         </Box>
                       }
                       secondary={
                         <>
-                          <Typography component="span" variant="body2" color="text.primary">
+                          <Typography component="span" variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}> {/* Secondary text color */}
                             {assessment.painLevels && typeof assessment.painLevels === 'object' && Object.keys(assessment.painLevels).length > 0 ? (
                               <>
                                 Avg Pain: {getAveragePainLevel(assessment.painLevels)} |
@@ -998,13 +1042,13 @@ const UserDashboard = () => {
                             )}
                           </Typography>
 
+                          {/* Chip styling adjusted */}
                           <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {assessment.imagingStudies && assessment.imagingStudies.length > 0 && (
                               <Chip
                                 label="Has Medical Imaging"
                                 size="small"
-                                color="primary"
-                                sx={{ mr: 0.5 }}
+                                sx={{ mr: 0.5, backgroundColor: 'primary.dark', color: 'white' }}
                               />
                             )}
 
@@ -1012,8 +1056,7 @@ const UserDashboard = () => {
                               <Chip
                                 label="Previous Surgery"
                                 size="small"
-                                color="secondary"
-                                sx={{ mr: 0.5 }}
+                                sx={{ mr: 0.5, backgroundColor: 'secondary.dark', color: 'white' }}
                               />
                             )}
 
@@ -1021,8 +1064,7 @@ const UserDashboard = () => {
                               <Chip
                                 label="Medical Conditions"
                                 size="small"
-                                color="info"
-                                sx={{ mr: 0.5 }}
+                                sx={{ mr: 0.5, backgroundColor: 'info.dark', color: 'white' }}
                               />
                             )}
                           </Box>
@@ -1037,12 +1079,19 @@ const UserDashboard = () => {
         </TabPanel>
       </Paper>
 
-      {/* Appointment Dialog */}
-      <Dialog open={appointmentDialogOpen} onClose={handleAppointmentDialogClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Book New Appointment</DialogTitle>
+      {/* Dialogs styled for dark theme */}
+      <Dialog
+        open={appointmentDialogOpen}
+        onClose={handleAppointmentDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { backgroundColor: '#1f2a3e', color: 'white' } }} // Dark background for dialog
+      >
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Book New Appointment</DialogTitle>
         <DialogContent>
+          {/* Form elements styled */}
           <FormControl fullWidth margin="normal" error={!!appointmentFormErrors.appointmentType}>
-            <InputLabel id="appointment-type-label">Appointment Type</InputLabel>
+            <InputLabel id="appointment-type-label" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Appointment Type</InputLabel>
             <Select
               labelId="appointment-type-label"
               id="appointmentType"
@@ -1050,6 +1099,9 @@ const UserDashboard = () => {
               value={appointmentFormData.appointmentType}
               onChange={handleAppointmentFormChange}
               label="Appointment Type"
+              variant="filled"
+              sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', '& .MuiSelect-icon': { color: 'rgba(255, 255, 255, 0.7)' } }}
+              MenuProps={{ PaperProps: { sx: { backgroundColor: '#2c3a52', color: 'white' } } }} // Style dropdown menu
             >
               <MenuItem value="surgeon">Surgeon</MenuItem>
               <MenuItem value="allied_health">Allied Health</MenuItem>
@@ -1072,6 +1124,8 @@ const UserDashboard = () => {
             onChange={handleAppointmentFormChange}
             error={!!appointmentFormErrors.provider}
             helperText={appointmentFormErrors.provider}
+            variant="filled"
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
           />
 
           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -1086,8 +1140,11 @@ const UserDashboard = () => {
                     fullWidth
                     error={!!appointmentFormErrors.date}
                     helperText={appointmentFormErrors.date}
+                    variant="filled"
+                    sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, svg: { color: 'rgba(255, 255, 255, 0.7)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
                   />
                 )}
+                // Add PaperProps for DatePicker popup styling if needed
               />
 
               <TimePicker
@@ -1100,8 +1157,11 @@ const UserDashboard = () => {
                     fullWidth
                     error={!!appointmentFormErrors.time}
                     helperText={appointmentFormErrors.time}
+                    variant="filled"
+                    sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, svg: { color: 'rgba(255, 255, 255, 0.7)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
                   />
                 )}
+                // Add PaperProps for TimePicker popup styling if needed
               />
             </Box>
           </LocalizationProvider>
@@ -1116,41 +1176,47 @@ const UserDashboard = () => {
             rows={4}
             value={appointmentFormData.notes}
             onChange={handleAppointmentFormChange}
+            variant="filled"
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, textarea: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' } }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleAppointmentDialogClose}>Cancel</Button>
+        <DialogActions sx={{ p: '16px 24px' }}>
+          <Button onClick={handleAppointmentDialogClose} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Cancel</Button>
           <Button
             onClick={handleAppointmentSubmit}
             variant="contained"
             disabled={loading}
+            sx={{ backgroundColor: '#bb86fc', '&:hover': { backgroundColor: '#a16ae8' } }} // Example purple button
           >
-            {loading ? <CircularProgress size={24} /> : 'Book Appointment'}
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Book Appointment'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Document Upload Dialog */}
-      <Dialog open={documentDialogOpen} onClose={handleDocumentDialogClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Upload Medical Document</DialogTitle>
+      {/* Document Upload Dialog styled */}
+      <Dialog
+        open={documentDialogOpen}
+        onClose={handleDocumentDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { backgroundColor: '#1f2a3e', color: 'white' } }} // Dark background
+      >
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Upload Medical Document</DialogTitle>
         <DialogContent>
           <Box sx={{ mb: 3, mt: 2 }}>
+            {/* Button styled */}
             <Button
               variant="outlined"
               component="label"
               fullWidth
               startIcon={<UploadIcon />}
-              sx={{ py: 1.5 }}
+              sx={{ py: 1.5, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
             >
               Select File
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-              />
+              <input type="file" hidden onChange={handleFileChange} />
             </Button>
             {selectedFile && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
+              <Typography variant="body2" sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.9)' }}>
                 Selected: {selectedFile.name}
               </Typography>
             )}
@@ -1161,8 +1227,9 @@ const UserDashboard = () => {
             )}
           </Box>
 
+          {/* Form elements styled */}
           <FormControl fullWidth margin="normal" error={!!documentFormErrors.documentType}>
-            <InputLabel id="document-type-label">Document Type</InputLabel>
+            <InputLabel id="document-type-label" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Document Type</InputLabel>
             <Select
               labelId="document-type-label"
               id="documentType"
@@ -1170,6 +1237,9 @@ const UserDashboard = () => {
               value={documentFormData.documentType}
               onChange={handleDocumentFormChange}
               label="Document Type"
+              variant="filled"
+              sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', '& .MuiSelect-icon': { color: 'rgba(255, 255, 255, 0.7)' } }}
+              MenuProps={{ PaperProps: { sx: { backgroundColor: '#2c3a52', color: 'white' } } }}
             >
               <MenuItem value="imaging">Imaging (X-Ray, MRI, CT)</MenuItem>
               <MenuItem value="lab_results">Lab Results</MenuItem>
@@ -1197,6 +1267,8 @@ const UserDashboard = () => {
                     fullWidth
                     error={!!documentFormErrors.documentDate}
                     helperText={documentFormErrors.documentDate}
+                    variant="filled"
+                    sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, svg: { color: 'rgba(255, 255, 255, 0.7)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
                   />
                 )}
               />
@@ -1213,6 +1285,8 @@ const UserDashboard = () => {
             rows={3}
             value={documentFormData.description}
             onChange={handleDocumentFormChange}
+            variant="filled"
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, textarea: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' } }}
           />
 
           <TextField
@@ -1224,16 +1298,19 @@ const UserDashboard = () => {
             value={documentFormData.tags}
             onChange={handleDocumentFormChange}
             placeholder="e.g. knee, surgery, follow-up"
+            variant="filled"
+            sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' } }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDocumentDialogClose}>Cancel</Button>
+        <DialogActions sx={{ p: '16px 24px' }}>
+          <Button onClick={handleDocumentDialogClose} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Cancel</Button>
           <Button
             onClick={handleDocumentSubmit}
             variant="contained"
             disabled={loading}
+            sx={{ backgroundColor: '#bb86fc', '&:hover': { backgroundColor: '#a16ae8' } }} // Example purple button
           >
-            {loading ? <CircularProgress size={24} /> : 'Upload Document'}
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Upload Document'}
           </Button>
         </DialogActions>
       </Dialog>

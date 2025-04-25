@@ -221,7 +221,7 @@ const Dashboard = () => {
     }
   };
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth(); // Keep this
 
   useEffect(() => {
     const fetchAssessmentData = async () => {
@@ -445,56 +445,57 @@ const Dashboard = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    // Container adjusted for Layout
+    <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', py: 4 }}>
       <Grid container spacing={3}>
         {/* Header */}
         <Grid item xs={12}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: 'white' }}> {/* White text */}
             Assessment Dashboard
           </Typography>
         </Grid>
 
-        {/* Recommendation Card */}
+        {/* Recommendation Card styled */}
         {recommendation && (
           <Grid item xs={12}>
             <Paper
-              elevation={3}
+              elevation={6}
               sx={{
                 p: 3,
-                borderRadius: 2,
-                bgcolor: `${recommendation.color}15`,
-                border: `1px solid ${recommendation.color}30`
+                borderRadius: 3,
+                backgroundColor: 'rgba(30, 40, 55, 0.9)', // Darker background
+                border: `1px solid ${recommendation.color}50`, // Use recommendation color for border
+                color: 'white'
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Box sx={{ color: recommendation.color }}>
                   {recommendation.icon}
                 </Box>
-                <Typography variant="h6" sx={{ color: recommendation.color }}>
+                <Typography variant="h6" sx={{ color: recommendation.color, fontWeight: 'bold' }}>
                   {recommendation.title}
                 </Typography>
               </Box>
-              <Typography variant="body1" sx={{ mb: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
                 {recommendation.description}
               </Typography>
+              {/* Button styled like HomePage */}
               <Button
                 variant="contained"
                 onClick={() => {
                   if (isAuthenticated) {
-                    // For logged in users, redirect based on recommendation type
                     if (recommendation.type === 'imaging' || recommendation.type === 'surgeon' || recommendation.type === 'allied') {
-                      navigate('/history');
+                      navigate('/user-dashboard'); // Go to user dashboard to book
                     }
                   } else {
-                    // For non-logged in users, show the account dialog
                     handleAccountDialogOpen();
                   }
                 }}
                 sx={{
-                  bgcolor: recommendation.color,
-                  '&:hover': {
-                    bgcolor: `${recommendation.color}dd`
-                  }
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  color: '#1a1a2e',
+                  fontWeight: 'bold',
+                  '&:hover': { backgroundColor: 'white' }
                 }}
               >
                 {recommendation.action}
@@ -503,61 +504,62 @@ const Dashboard = () => {
           </Grid>
         )}
 
-        {/* AI-Generated Summary Card */}
+        {/* AI-Generated Summary Card styled */}
         <Grid item xs={12}>
-          <Paper elevation={2} sx={{ p: 3, borderRadius: 2, mb: 3, bgcolor: theme.palette.background.default }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
+          <Paper elevation={4} sx={{ p: 3, borderRadius: 3, mb: 3, backgroundColor: 'rgba(30, 40, 55, 0.9)', color: 'white' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#bb86fc', fontWeight: 'bold' }}> {/* Adjusted color */}
               Clinical Assessment Summary (AI-Generated)
             </Typography>
-            
+
             {summaryLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                <CircularProgress size={24} />
-                <Typography variant="body2" sx={{ ml: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3 }}>
+                <CircularProgress size={24} sx={{ color: 'white' }} />
+                <Typography variant="body2" sx={{ ml: 2, color: 'rgba(255, 255, 255, 0.7)' }}>
                   Generating clinical summary...
                 </Typography>
               </Box>
             ) : aiSummary ? (
-              <Typography variant="body1" sx={{ lineHeight: 1.7, fontStyle: 'italic', pl: 2, borderLeft: `4px solid ${theme.palette.primary.light}` }}>
+              <Typography variant="body1" sx={{ lineHeight: 1.7, fontStyle: 'italic', pl: 2, borderLeft: `4px solid #bb86fc`, color: 'rgba(255, 255, 255, 0.9)' }}>
                 {aiSummary}
               </Typography>
             ) : (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 No summary available for this assessment.
               </Typography>
             )}
           </Paper>
         </Grid>
 
-        {/* Pain Chart */}
+        {/* Pain Chart styled */}
         <Grid item xs={12} md={8}>
-          <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper elevation={4} sx={{ p: 3, borderRadius: 3, backgroundColor: 'rgba(30, 40, 55, 0.9)', color: 'white' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
               Pain Levels
             </Typography>
-            {renderPainChart()}
+            {renderPainChart()} {/* Ensure renderPainChart uses dark theme compatible colors */}
           </Paper>
         </Grid>
 
-        {/* Summary Card */}
+        {/* Timeline Card styled */}
         <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper elevation={4} sx={{ p: 3, borderRadius: 3, backgroundColor: 'rgba(30, 40, 55, 0.9)', color: 'white' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
               Assessment Timeline
             </Typography>
-            <Timeline>
+            {/* Timeline styled */}
+            <Timeline sx={{ [`& .MuiTimelineItem-root::before`]: { flex: 0, padding: 0 }, '& .MuiTimelineDot-root': { boxShadow: 'none' } }}>
               <TimelineItem>
                 <TimelineSeparator>
-                  <TimelineDot color="primary">
+                  <TimelineDot sx={{ bgcolor: '#bb86fc' }}> {/* Dot color */}
                     <AssessmentIcon />
                   </TimelineDot>
-                  <TimelineConnector />
+                  <TimelineConnector sx={{ bgcolor: 'rgba(255, 255, 255, 0.23)' }} /> {/* Connector color */}
                 </TimelineSeparator>
-                <TimelineContent>
-                  <Typography variant="subtitle2">
+                <TimelineContent sx={{ py: '12px', px: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                     Pain Assessment Completed
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                     {new Date(assessmentData?.timestamp).toLocaleDateString()}
                   </Typography>
                 </TimelineContent>
@@ -565,16 +567,16 @@ const Dashboard = () => {
               {assessmentData?.surgicalHistory?.hasPreviousSurgery && (
                 <TimelineItem>
                   <TimelineSeparator>
-                    <TimelineDot color="secondary">
+                    <TimelineDot sx={{ bgcolor: '#03dac6' }}> {/* Dot color */}
                       <HospitalIcon />
                     </TimelineDot>
-                    <TimelineConnector />
+                    <TimelineConnector sx={{ bgcolor: 'rgba(255, 255, 255, 0.23)' }} />
                   </TimelineSeparator>
-                  <TimelineContent>
-                    <Typography variant="subtitle2">
+                  <TimelineContent sx={{ py: '12px', px: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                       Previous Surgeries
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                       {assessmentData.surgicalHistory.surgeries?.length || 0} recorded
                     </Typography>
                   </TimelineContent>
@@ -583,15 +585,15 @@ const Dashboard = () => {
               {assessmentData?.imagingStudies?.some(study => study.hasHad) && (
                 <TimelineItem>
                   <TimelineSeparator>
-                    <TimelineDot color="warning">
+                    <TimelineDot sx={{ bgcolor: '#f48fb1' }}> {/* Dot color */}
                       <WarningIcon />
                     </TimelineDot>
                   </TimelineSeparator>
-                  <TimelineContent>
-                    <Typography variant="subtitle2">
+                  <TimelineContent sx={{ py: '12px', px: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                       Medical Imaging
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                       {assessmentData.imagingStudies.filter(study => study.hasHad).length} scans recorded
                     </Typography>
                   </TimelineContent>
@@ -599,20 +601,11 @@ const Dashboard = () => {
               )}
             </Timeline>
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+              {/* Button styled */}
               <Button
                 variant="outlined"
-                onClick={() => navigate('/summary', { 
-                  state: { 
-                    assessmentId: location.state?.assessmentId || localStorage.getItem('assessmentId')
-                  }
-                })}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
+                onClick={() => navigate('/summary', { state: { assessmentId: location.state?.assessmentId || localStorage.getItem('assessmentId') } })}
+                sx={{ borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
               >
                 View Detailed Summary
               </Button>
@@ -620,67 +613,40 @@ const Dashboard = () => {
           </Paper>
         </Grid>
 
-        {/* Action Buttons */}
+        {/* Action Buttons styled */}
         <Grid item xs={12}>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between',
-            mt: 2,
-            pt: 2,
-            borderTop: 1, 
-            borderColor: 'divider' 
-          }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, pt: 2, borderTop: 1, borderColor: 'rgba(255, 255, 255, 0.23)' }}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button
                 variant="outlined"
                 onClick={() => navigate('/assessment')}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
+                sx={{ borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
               >
                 Back to Assessment
               </Button>
-              
+
               <Button
                 variant="outlined"
-                color="primary"
                 onClick={() => navigate('/user-dashboard')}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
+                sx={{ borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
               >
                 User Dashboard
               </Button>
             </Box>
-            
-            <Box sx={{ display: 'flex', gap: 2 }}>
+
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               {!isAuthenticated && (
                 <Button
                   variant="outlined"
                   startIcon={<PersonAddIcon />}
                   onClick={handleAccountDialogOpen}
-                  sx={{
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
-                  }}
+                  sx={{ borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, color: '#bb86fc', borderColor: 'rgba(187, 134, 252, 0.5)', '&:hover': { borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)' } }}
                 >
                   Create Account
                 </Button>
               )}
-              
+
+              {/* Start New button styled like HomePage */}
               <Button
                 variant="contained"
                 onClick={handleStartNew}
@@ -690,10 +656,14 @@ const Dashboard = () => {
                   py: 1,
                   textTransform: 'none',
                   fontWeight: 600,
-                  background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  color: '#1a1a2e',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
-                  }
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                    transform: 'scale(1.03)',
+                    boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+                  },
+                  transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 }}
               >
                 Start New Assessment
@@ -702,42 +672,39 @@ const Dashboard = () => {
           </Box>
         </Grid>
       </Grid>
-      
-      {/* Account Creation Dialog */}
+
+      {/* Account Creation Dialog styled */}
       <Dialog
         open={accountDialogOpen}
         onClose={handleAccountDialogClose}
         fullWidth
         maxWidth="sm"
+        PaperProps={{ sx: { backgroundColor: '#1f2a3e', color: 'white' } }} // Dark background
       >
-        <DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
           Create Your Account
           <IconButton
             aria-label="close"
             onClick={handleAccountDialogClose}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: theme.palette.grey[500]
-            }}
+            sx={{ position: 'absolute', right: 8, top: 8, color: 'rgba(255, 255, 255, 0.7)' }} // Adjusted color
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        
-        <DialogContent dividers>
+
+        <DialogContent dividers sx={{ borderColor: 'rgba(255, 255, 255, 0.23)' }}> {/* Divider color */}
           {registerError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" variant="filled" sx={{ mb: 2, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}>
               {registerError}
             </Alert>
           )}
-          
+
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, my: 1 }}>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+            <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
               Create an account to save your assessment data and book appointments with healthcare providers.
             </Typography>
-            
+
+            {/* TextFields styled */}
             <TextField
               required
               fullWidth
@@ -750,8 +717,10 @@ const Dashboard = () => {
               error={!!formErrors.name}
               helperText={formErrors.name || "Enter your full name (at least 2 characters)"}
               disabled={registerLoading}
+              variant="filled"
+              sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
             />
-            
+
             <TextField
               required
               fullWidth
@@ -765,8 +734,10 @@ const Dashboard = () => {
               helperText={formErrors.email || "Use a valid email format (e.g., name@example.com)"}
               disabled={registerLoading}
               placeholder="name@example.com"
+              variant="filled"
+              sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
             />
-            
+
             <TextField
               required
               fullWidth
@@ -780,8 +751,10 @@ const Dashboard = () => {
               error={!!formErrors.password}
               helperText={formErrors.password || "Minimum 6 characters required"}
               disabled={registerLoading}
+              variant="filled"
+              sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
             />
-            
+
             <TextField
               required
               fullWidth
@@ -795,14 +768,16 @@ const Dashboard = () => {
               error={!!formErrors.confirmPassword}
               helperText={formErrors.confirmPassword || "Repeat your password exactly"}
               disabled={registerLoading}
+              variant="filled"
+              sx={{ '& .MuiFilledInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }, input: { color: 'white' }, label: { color: 'rgba(255, 255, 255, 0.7)' }, '.MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' } }}
             />
           </Box>
         </DialogContent>
-        
+
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleAccountDialogClose} 
-            color="primary"
+          <Button
+            onClick={handleAccountDialogClose}
+            sx={{ color: 'rgba(255, 255, 255, 0.7)' }} // Adjusted color
             disabled={registerLoading}
           >
             Cancel
@@ -810,18 +785,10 @@ const Dashboard = () => {
           <Button
             onClick={handleAccountCreate}
             variant="contained"
-            color="primary"
             disabled={registerLoading}
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              background: 'linear-gradient(45deg, #1a365d 30%, #2b6cb0 90%)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #15294d 30%, #245d9f 90%)'
-              }
-            }}
+            sx={{ borderRadius: 2, px: 3, backgroundColor: '#bb86fc', '&:hover': { backgroundColor: '#a16ae8' } }} // Example purple button
           >
-            {registerLoading ? <CircularProgress size={24} /> : 'Create Account'}
+            {registerLoading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -829,4 +796,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

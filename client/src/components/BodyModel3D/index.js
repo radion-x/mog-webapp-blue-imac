@@ -406,7 +406,7 @@ const Scene = forwardRef(({ onPointClick, painScores, disabled, activeRegion, de
       <PerspectiveCamera
         makeDefault
         fov={30}
-        position={[0, 0.25, 2.0]}
+        position={[0, 0.25, 2.8]} // Increased Z position to zoom out
         near={0.1}
         far={1000}
       />
@@ -508,7 +508,7 @@ const Scene = forwardRef(({ onPointClick, painScores, disabled, activeRegion, de
         ref={controlsRef}
         enablePan={false}
         minDistance={1.0}
-        maxDistance={3.0}
+        maxDistance={4.0} // Increased maxDistance
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI * 5 / 6}
         enableDamping
