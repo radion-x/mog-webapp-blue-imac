@@ -236,3 +236,19 @@ body.dark-theme .success-message {
   color: #a7f3d0;
   border-left-color: var(--success-color);
 }
+
+/* Animation for prominent text */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.7;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* Note: The dark theme variation for pulse-glow was removed as @keyframes cannot be nested this way.
+   The base pulse-glow animation will be used, and styling differences can be handled
+   by applying different classes or styles directly to the element if needed. */

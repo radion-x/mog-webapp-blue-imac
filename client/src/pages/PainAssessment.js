@@ -274,11 +274,22 @@ const PainAssessment = () => {
     <React.Fragment>
       {/* Container adjusted to work within Layout */}
       <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', py: 4 }}>
-          {/* Main Paper adjusted for dark theme */}
-          <Paper elevation={6} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(20, 25, 35, 0.8)', backdropFilter: 'blur(8px)', color: 'white' }}>
-            {/* Stepper styled for dark theme */}
+          {/* Main Paper now uses theme background */}
+          <Paper elevation={6} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', bgcolor: 'background.paper', color: 'text.primary' }}> {/* Use theme colors */}
+            {/* Stepper now uses theme colors */}
             <Box sx={{ mb: 3 }}>
-              <Stepper activeStep={1} alternativeLabel sx={{ '& .MuiStepLabel-label': { color: 'rgba(255, 255, 255, 0.7)', '&.Mui-active': { color: 'white', fontWeight: 'bold' }, '&.Mui-completed': { color: '#bb86fc' } }, '& .MuiStepIcon-root': { color: 'rgba(255, 255, 255, 0.3)', '&.Mui-active': { color: '#bb86fc' }, '&.Mui-completed': { color: '#bb86fc' } } }}>
+              <Stepper activeStep={1} alternativeLabel sx={{
+                  '& .MuiStepLabel-label': {
+                    color: 'text.secondary', // Use secondary text color
+                    '&.Mui-active': { color: 'text.primary', fontWeight: 'bold' }, // Use primary text color when active
+                    '&.Mui-completed': { color: 'primary.main' } // Use primary color when completed
+                  },
+                  '& .MuiStepIcon-root': {
+                    color: 'action.disabledBackground', // Use a disabled background color for inactive icons
+                    '&.Mui-active': { color: 'primary.main' }, // Use primary color when active
+                    '&.Mui-completed': { color: 'primary.main' } // Use primary color when completed
+                  }
+                }}>
                 {steps.map((label) => (
                   <Step key={label}>
                     <StepLabel>
@@ -296,7 +307,8 @@ const PainAssessment = () => {
                   Pain Assessment
                 </Typography>
                 <Tooltip title="Click on the highlighted points on the model to mark your pain levels.">
-                  <IconButton size="small" sx={{ ml: 1, color: 'rgba(255, 255, 255, 0.7)' }}> {/* Icon color */}
+                  {/* Use secondary text color for icon */}
+                  <IconButton size="small" sx={{ ml: 1, color: 'text.secondary' }}>
                     <Help fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -304,9 +316,10 @@ const PainAssessment = () => {
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Tooltip title="Toggle debug mode">
+                  {/* Use secondary text color, error color when active */}
                   <IconButton
                     onClick={toggleDebugMode}
-                    sx={{ mr: 1, color: debugMode ? '#f48fb1' : 'rgba(255, 255, 255, 0.7)' }} // Error color for debug on
+                    sx={{ mr: 1, color: debugMode ? 'error.main' : 'text.secondary' }}
                   >
                     <BugReportIcon />
                   </IconButton>
@@ -314,13 +327,20 @@ const PainAssessment = () => {
 
                 {/* RadioGroup styled for dark theme */}
                 <Tooltip title="Select visualization type">
+                  {/* RadioGroup now uses theme colors */}
                   <RadioGroup
                     row
                     aria-label="visualization-type"
                     name="visualization-type"
                     value={modelType}
                     onChange={(e) => setModelType(e.target.value)}
-                    sx={{ '& .MuiFormControlLabel-label': { color: 'rgba(255, 255, 255, 0.7)' }, '& .MuiRadio-root': { color: 'rgba(255, 255, 255, 0.7)', '&.Mui-checked': { color: '#bb86fc' } } }}
+                    sx={{
+                      '& .MuiFormControlLabel-label': { color: 'text.secondary' },
+                      '& .MuiRadio-root': {
+                        color: 'text.secondary',
+                        '&.Mui-checked': { color: 'primary.main' }
+                      }
+                    }}
                   >
                     <FormControlLabel value="3d" control={<Radio size="small" />} label="3D" />
                     <FormControlLabel value="simple" control={<Radio size="small" />} label="Simple" />
@@ -329,10 +349,10 @@ const PainAssessment = () => {
               </Box>
             </Box>
 
-            {/* Alerts styled for dark theme */}
+            {/* Alerts use standard theme styling now */}
             {error && (
               <Fade in={true}>
-                <Alert severity="error" variant="filled" sx={{ mb: 2, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2 }}> {/* Use outlined for better theme integration */}
                   {error}
                 </Alert>
               </Fade>
@@ -340,7 +360,7 @@ const PainAssessment = () => {
 
             {showSuccess && !error && (
               <Fade in={true}>
-                <Alert icon={<CheckCircleOutline fontSize="small" />} severity="success" variant="filled" sx={{ mb: 2, '.MuiAlert-message': { color: 'rgba(0, 0, 0, 0.87)' } }}>
+                <Alert icon={<CheckCircleOutline fontSize="small" />} severity="success" variant="outlined" sx={{ mb: 2 }}> {/* Use outlined */}
                   Pain levels have been marked. You can proceed to submit your assessment.
                 </Alert>
               </Fade>
@@ -354,10 +374,17 @@ const PainAssessment = () => {
               {/* Model Area in Grid Item */}
               {/* Removed minHeight, rely on flexbox */}
               <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
-                {/* Instructional Text styled */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  <TouchAppIcon sx={{ mr: 0.5, fontSize: '1.1rem' }} />
-                  <Typography variant="caption">
+                {/* Instructional Text - Uses theme colors */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                  <TouchAppIcon sx={{ mr: 1, fontSize: '1.2rem', color: 'text.secondary' }} />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      color: 'text.secondary',
+                      textAlign: 'center'
+                    }}
+                  >
                     Click, hold, and drag to rotate the model. Use scroll to zoom.
                   </Typography>
                 </Box>
@@ -371,35 +398,35 @@ const PainAssessment = () => {
                     p: 0,
                     borderRadius: 2,
                     border: '1px solid',
-                    borderColor: 'rgba(255, 255, 255, 0.23)',
+                    borderColor: 'divider', // Use theme divider color
                     width: '100%',
-                      height: '100%', // Make paper fill the grid item height
-                      overflow: 'hidden',
-                      display: 'flex', // Use flex to make canvas fill space
-                      flexDirection: 'column',
-                      backgroundColor: 'rgba(10, 15, 25, 0.7)',
-                      boxShadow: 'inset 0 0 10px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    {/* Camera Control Buttons styled */}
+                    height: '100%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: 'action.hover', // Use a subtle background from theme
+                    boxShadow: 'inset 0 0 10px rgba(0,0,0,0.1)' // Lighter inset shadow
+                  }}
+                >
+                  {/* Camera Control Buttons use theme colors */}
                   <Box sx={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     <Tooltip title="View Front">
-                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewFront()}>
+                      <IconButton size="small" sx={{ bgcolor: 'action.selected', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewFront()}>
                         <ArrowDownward fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="View Back">
-                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewBack()}>
+                      <IconButton size="small" sx={{ bgcolor: 'action.selected', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewBack()}>
                         <ArrowUpward fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="View Left">
-                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewLeft()}>
+                      <IconButton size="small" sx={{ bgcolor: 'action.selected', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewLeft()}>
                         <ArrowBackIosNew fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="View Right">
-                      <IconButton size="small" sx={{ bgcolor: 'rgba(40, 50, 70, 0.8)', color: 'white', '&:hover': { bgcolor: 'rgba(50, 60, 80, 1)' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewRight()}>
+                      <IconButton size="small" sx={{ bgcolor: 'action.selected', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }} onClick={() => modelRef.current?.setViewRight()}>
                         <ArrowForwardIos fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
@@ -438,97 +465,67 @@ const PainAssessment = () => {
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                   Describe Your Pain Experience
                 </Typography>
-                <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.7)' }}>
+                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}> {/* Use theme color */}
                   Please describe your pain and how it affects your daily life — including when it started, where it’s located, what makes it better or worse, and what you’re hoping to achieve from treatment.
                 </Typography>
+                {/* TextField uses theme styling */}
                 <TextField
                   fullWidth
                   multiline
-                  rows={10} // Adjusted rows slightly
-                  variant="filled"
+                  rows={10}
+                  variant="outlined" // Use outlined for standard look
                   label="Pain Description"
                   value={painDescription}
                   onChange={(e) => setPainDescription(e.target.value)}
                   placeholder="Enter details here..."
                   sx={{
-                    flexGrow: 1, // Allow TextField to grow
-                    '& .MuiFilledInput-root': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      height: '100%', // Make input fill the available space
-                      alignItems: 'flex-start' // Align text to top
+                    flexGrow: 1,
+                    '& .MuiOutlinedInput-root': { // Ensure input fills height
+                      height: '100%',
+                      alignItems: 'flex-start'
                     },
                     '& .MuiInputBase-inputMultiline': {
-                      height: '100% !important', // Override default height if needed
-                      overflow: 'auto !important' // Ensure scrollability
-                    },
-                    textarea: { color: 'white' },
-                    label: { color: 'rgba(255, 255, 255, 0.7)' }
+                      height: '100% !important',
+                      overflow: 'auto !important'
+                    }
                   }}
                 />
               </Box>
 
-              {/* Action Buttons styled - Placed at the bottom */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto', pt: 2, borderTop: 1, borderColor: 'rgba(255, 255, 255, 0.23)' }}>
+              {/* Action Buttons use theme colors */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto', pt: 2, borderTop: 1, borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  {/* Back button - Styled like HomePage */}
+                  {/* Back button - Use standard outlined */}
                   <Button
-                    variant="contained" // Changed to contained
+                    variant="outlined" // Standard outlined
+                    color="secondary" // Use secondary color
                     size="medium"
                     onClick={() => navigate('/')}
                     startIcon={<ArrowBack />}
-                    sx={{
-                      borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600,
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e',
-                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)', transform: 'scale(1.03)', boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)' },
-                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                    }}
                   >
                     Back to Home
                   </Button>
 
-                  {/* Dashboard button - Styled like HomePage */}
+                  {/* Dashboard button - Use standard outlined */}
                   <Button
-                    variant="contained" // Changed to contained
+                    variant="outlined" // Standard outlined
+                    color="secondary" // Use secondary color
                     onClick={() => navigate('/user-dashboard')}
-                    sx={{
-                      borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600,
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#1a1a2e',
-                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)', transform: 'scale(1.03)', boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)' },
-                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                    }}
                   >
                     User Dashboard
                   </Button>
                 </Box>
-                {/* Complete button - Styled like HomePage (already correct) */}
+                {/* Complete button - Use standard contained primary */}
                 <Button
                   variant="contained"
+                  color="primary" // Use primary color
                   size="medium"
-                    onClick={handleSubmit}
-                    disabled={isLoading || !painData || Object.keys(painData || {}).length === 0}
-                    endIcon={isLoading ? <CircularProgress size={16} sx={{ color: '#1a1a2e' }} /> : <ArrowForward />}
-                    sx={{
-                      borderRadius: 2,
-                      px: 3,
-                      py: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      color: '#1a1a2e',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 1)',
-                        transform: 'scale(1.03)',
-                        boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
-                      },
-                      transition: 'transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                      '&.Mui-disabled': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.3)', // Lighter disabled background
-                        color: 'rgba(0, 0, 0, 0.4)'
-                      }
-                    }}
-                  >
-                    Complete Assessment
-                  </Button>
+                  onClick={handleSubmit}
+                  disabled={isLoading || !painData || Object.keys(painData || {}).length === 0}
+                  endIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
+                >
+                  Complete Assessment
+                </Button>
                 </Box>
               </Grid> {/* Close Description Grid Item */}
             </Grid> {/* Close main Grid container */}
@@ -536,35 +533,38 @@ const PainAssessment = () => {
         </Container>
 
         {/* THREE.js Error Dialog styled */}
+        {/* Dialog uses theme colors */}
         <Dialog
           open={showErrorDialog}
           onClose={() => setShowErrorDialog(false)}
           aria-labelledby="threejs-error-dialog-title"
-          PaperProps={{ sx: { backgroundColor: '#1f2a3e', color: 'white' } }} // Dark background
+          PaperProps={{ sx: { bgcolor: 'background.paper' } }} // Use theme paper background
         >
-          <DialogTitle id="threejs-error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold' }}>
+          <DialogTitle id="threejs-error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold', color: 'error.main' }}> {/* Use error color */}
             <Warning color="error" />
             3D Rendering Issue Detected
           </DialogTitle>
           <DialogContent>
-            <DialogContentText sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <DialogContentText color="text.secondary"> {/* Use secondary text color */}
               There was an issue with the 3D model rendering. You have a few options:
             </DialogContentText>
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(244, 143, 177, 0.1)', color: '#f48fb1', borderRadius: 1, border: '1px solid rgba(244, 143, 177, 0.3)' }}>
+            {/* Error message box uses theme error colors */}
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'error.lighter', color: 'error.dark', borderRadius: 1, border: 1, borderColor: 'error.light' }}>
               <Typography variant="body2" fontFamily="monospace" whiteSpace="pre-wrap">
                 {threeJsError ? threeJsError.toString() : 'Unknown THREE.js error'}
               </Typography>
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'space-between' }}>
-            <Button onClick={() => setShowErrorDialog(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            {/* Buttons use theme colors */}
+            <Button onClick={() => setShowErrorDialog(false)} color="inherit"> {/* Inherit color (usually text primary/secondary) */}
               Dismiss
             </Button>
             <Box>
-              <Button onClick={resetThreeJsError} startIcon={<RestartAlt />} variant="contained" sx={{ mr: 1, backgroundColor: '#bb86fc', '&:hover': { backgroundColor: '#a16ae8' } }}>
+              <Button onClick={resetThreeJsError} startIcon={<RestartAlt />} variant="contained" color="primary" sx={{ mr: 1 }}> {/* Primary color */}
                 Reset & Try Again
               </Button>
-              <Button onClick={() => { setModelType('simple'); setShowErrorDialog(false); }} sx={{ color: '#f48fb1' }}>
+              <Button onClick={() => { setModelType('simple'); setShowErrorDialog(false); }} color="error"> {/* Error color */}
                 Use Simple Model
               </Button>
             </Box>

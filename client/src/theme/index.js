@@ -111,45 +111,78 @@ const commonSettings = {
   },
 };
 
-// Create light theme instance
+// Create Professional Light Theme Instance
 export const lightTheme = createTheme({
   ...commonSettings,
   palette: {
     mode: 'light',
-    primary: {
-      main: '#2563eb', // Blue-600
-      light: '#60a5fa', // Blue-400
-      dark: '#1e40af', // Blue-800
+    primary: { // Using a professional blue
+      main: '#1d4ed8', // Blue-700
+      light: '#3b82f6', // Blue-500
+      dark: '#1e3a8a', // Blue-800
       contrastText: '#ffffff',
     },
-    secondary: {
-      main: '#64748b', // Slate-500
-      light: '#94a3b8', // Slate-400
-      dark: '#475569', // Slate-600
+    secondary: { // Using standard greys
+      main: '#6b7280', // Gray-500
+      light: '#d1d5db', // Gray-300
+      dark: '#4b5563', // Gray-600
       contrastText: '#ffffff',
     },
     background: {
-      default: '#f8fafc', // Slate-50
-      paper: '#ffffff', // White
+      default: '#ffffff', // Clean white background
+      paper: '#f9fafb', // Very light grey for paper elements (subtle distinction)
     },
-    error: { main: '#ef4444', light: '#f87171', dark: '#dc2626' }, // Red-500
-    warning: { main: '#f59e0b', light: '#fbbf24', dark: '#d97706' }, // Amber-500
-    info: { main: '#3b82f6', light: '#60a5fa', dark: '#2563eb' }, // Blue-500
-    success: { main: '#10b981', light: '#34d399', dark: '#059669' }, // Emerald-500
-    grey: {
-      50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
-      400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
-      800: '#1e293b', 900: '#0f172a',
+    error: { main: '#dc2626', light: '#ef4444', dark: '#b91c1c' }, // Standard Red-600
+    warning: { main: '#f59e0b', light: '#fbbf24', dark: '#d97706' }, // Standard Amber-500
+    info: { main: '#2563eb', light: '#3b82f6', dark: '#1d4ed8' }, // Standard Blue-600
+    success: { main: '#16a34a', light: '#22c55e', dark: '#15803d' }, // Standard Green-600
+    grey: { // Standard Material UI grey scale (or Tailwind Slate if preferred)
+      50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db',
+      400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151',
+      800: '#1f2937', 900: '#111827',
     },
     text: {
-      primary: '#1e293b', // Slate-800
-      secondary: '#475569', // Slate-600
-      disabled: '#94a3b8', // Slate-400
+      primary: '#111827', // Dark Grey-900 for primary text
+      secondary: '#4b5563', // Dark Grey-600 for secondary text
+      disabled: '#9ca3af', // Grey-400 for disabled text
     },
   },
+  // Override components slightly for the new light theme if needed
+  components: {
+    ...commonSettings.components,
+    MuiButton: {
+      ...commonSettings.components.MuiButton,
+      styleOverrides: {
+        ...commonSettings.components.MuiButton.styleOverrides,
+        containedPrimary: {
+          '&:hover': {
+            backgroundColor: '#1e3a8a', // Darker blue on hover
+          },
+        },
+      }
+    },
+    MuiPaper: { // Adjust paper background if needed
+      styleOverrides: {
+        ...commonSettings.components.MuiPaper.styleOverrides,
+        root: {
+          ...commonSettings.components.MuiPaper.styleOverrides.root,
+          backgroundColor: '#f9fafb', // Use the light paper color
+        },
+      }
+    },
+    MuiCard: { // Adjust card background
+       styleOverrides: {
+        ...commonSettings.components.MuiCard.styleOverrides,
+        root: {
+          ...commonSettings.components.MuiCard.styleOverrides.root,
+           backgroundColor: '#ffffff', // Use white for cards for contrast
+        },
+      },
+    }
+  }
 });
 
-// Create dark theme instance
+// Create Dark Theme Instance (Keep existing dark theme)
 export const darkTheme = createTheme({
   ...commonSettings,
   palette: {

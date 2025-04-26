@@ -26,76 +26,115 @@ function Layout({ children }) {
     // Optional callback
   }, []);
 
-  // Memoize options - Dynamic based on theme for background AND particle/link colors
-  const particleOptions = useMemo(() => ({
-    background: {
-      color: {
-        // Use the theme's default background for the particle canvas itself
-        value: theme.palette.background.default,
+  // Memoize options - Conditional styling based on themeMode
+  const particleOptions = useMemo(() => {
+    const isLightMode = themeMode === 'light';
+
+    // Base options common to both modes
+    const baseOptions = {
+      background: {
+        color: {
+          value: theme.palette.background.default,
+        },
       },
-    },
-    fpsLimit: 60, // Keep original fpsLimit
-    interactivity: {
-      events: {
-        onHover: {
+      fpsLimit: 60,
+      interactivity: {
+        events: {
+          onHover: {
+            enable: true,
+            mode: "repulse",
+          },
+          resize: true,
+        },
+        modes: {
+          repulse: {
+            distance: 100,
+            duration: 0.4,
+          },
+        },
+      },
+      particles: {
+        collisions: {
+          enable: false,
+        },
+        move: {
+          direction: "none",
           enable: true,
-          mode: "repulse",
+          outModes: {
+            default: "out",
+          },
+          random: true,
+          speed: 0.5,
+          straight: false,
         },
-        resize: true,
+        number: {
+          density: {
+            enable: true,
+            area: 900,
+          },
+            value: 120, // Increased particle count
+          },
+          shape: {
+            type: ["circle", "square", "triangle"], // Add more shapes
+          },
       },
-      modes: {
-        repulse: {
-          distance: 100,
-          duration: 0.4,
+      detectRetina: true,
+    };
+
+    // Theme-specific particle/link styles
+    if (isLightMode) {
+      return {
+        ...baseOptions,
+        particles: {
+          ...baseOptions.particles,
+          color: {
+            // Use darker shades for better contrast on white background
+            value: [theme.palette.primary.dark, theme.palette.secondary.dark, theme.palette.grey[600]], // Darker Blue, Darker Grey
+          },
+          links: {
+            // Use a slightly darker grey for links
+            color: theme.palette.grey[500], // Grey-500
+            distance: 150,
+            enable: true,
+            opacity: 0.3, // Keep opacity subtle
+            width: 1, // Standard link width
+          },
+          opacity: {
+            // Standard opacity
+            value: { min: 0.2, max: 0.6 },
+          },
+          size: {
+            // Standard particle size
+            value: { min: 1, max: 4 },
+          },
         },
-      },
-    },
-    particles: {
-      color: {
-        // Use the theme's primary text color for the particles
-        value: theme.palette.text.primary,
-      },
-      links: {
-        // Use the theme's primary text color for the links
-        color: theme.palette.text.primary,
-        distance: 150,
-        enable: true,
-        opacity: 0.2, // Adjust opacity if needed for visibility on light/dark
-        width: 1,
-      },
-      collisions: {
-        enable: false,
-      },
-      move: {
-        direction: "none",
-        enable: true,
-        outModes: {
-          default: "out",
+      };
+    } else {
+      // Dark mode styles (Keep original white/light particles and links)
+      return {
+        ...baseOptions,
+        particles: {
+          ...baseOptions.particles,
+          color: {
+            value: '#ffffff', // Explicitly white for dark mode particles
+          },
+          links: {
+            color: '#ffffff', // Explicitly white for dark mode links
+            distance: 150,
+            enable: true,
+            opacity: 0.2,
+            width: 1,
+          },
+          opacity: {
+            value: { min: 0.1, max: 0.5 }, // Original opacity
+          },
+          size: {
+            value: { min: 1, max: 3 }, // Original size
+          },
         },
-        random: true,
-        speed: 0.5,
-        straight: false,
-      },
-      number: {
-        density: {
-          enable: true,
-          area: 900,
-        },
-        value: 60,
-      },
-      opacity: {
-        value: { min: 0.1, max: 0.5 },
-      },
-      shape: {
-        type: "circle",
-      },
-      size: {
-        value: { min: 1, max: 3 },
-      },
-    },
-    detectRetina: true,
-    // Options now depend on the theme's background and text colors
-  }), [theme.palette.background.default, theme.palette.text.primary]);
+      };
+    }
+  }, [themeMode, theme.palette.background.default, theme.palette.text.primary, theme.palette.grey]); // Add grey palette dependency
 
   return (
     <Box sx={{
